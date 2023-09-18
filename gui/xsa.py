@@ -4,8 +4,10 @@ from tkinter import filedialog
 from tkinter import messagebox
 import csv
 from pathlib import Path
+import pandas as pd
+from tkinter import filedialog
 
-
+from csv_cleaner import Csv_Cleaner
 
 ############################################
 ### splash window
@@ -38,7 +40,6 @@ image_label.pack()
 def main():
 
 
-
     ############################################
     # OPENS A CSV FILE
     def open_csv_file():
@@ -50,6 +51,7 @@ def main():
     # DOES NOTHING
     def do_nothing():
         pass
+
 
     ############################################
     # ASKS THE USER A YES NO QUESTION
@@ -66,20 +68,43 @@ def main():
     # DISPLAYS THE DATA FROM THE CSV ONTO THE TREEVIEW
     def display_csv_data(file_path):
         try:
+            clean_data = ask("Would you like to clean your data ?")
+            file_name = ""
+
+            if clean_data:
+                    df = pd.read_csv(file_path)
+                    cleaner = Csv_Cleaner(file_path)
+                    df = cleaner.clean(df)
+
+                    save_file = ask("Would you like to save the cleaned data ?")
+
+                    if save_file:
+                        
+                        f = filedialog.asksaveasfile(mode='w', defaultextension=".csv")
+                        if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
+                            return
+                        f.write(df.to_csv(index=False))
+                        file_name = f.name
+                        f.close()
+                    else:
+                        file_name = file_path
+            else:
+                file_name = file_path
+
             header_prsent = ask("Does the file have a header ?")
-            with open(file_path, 'r', newline='') as file:
+            with open(file_name, 'r', newline='') as file:
                 csv_reader = csv.reader(file)
                 if header_prsent:
                     header = next(csv_reader)
-                    print(header)  # Read the header row
                 else:
                     header=["target", "ids", "date", "flag", "user", "text"]
+
                 tree.delete(*tree.get_children())  # Clear the current data
 
                 tree["columns"] = header
                 for col in header:
                     tree.heading(col, text=col)
-                    tree.column(col, width=170)
+                    tree.column(col, width=300, stretch=True)
 
                 for row in csv_reader:
                     tree.insert("", "end", values=row)
@@ -124,9 +149,6 @@ def main():
 
     Button = tk.Button(down_frame, text = "Train Model", command = do_nothing)
     Button.pack()
-
-    ButtonClean = tk.Button(down_frame, text="Clean Data", command = do_nothing) #future clean data action
-    ButtonClean.pack()
 
     #upper frame
     style = ttk.Style(upper_frame)
