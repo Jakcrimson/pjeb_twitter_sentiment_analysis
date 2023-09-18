@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
+from tkinter import messagebox
 import csv
 from pathlib import Path
 
@@ -36,6 +37,8 @@ image_label.pack()
 ############################################
 def main():
 
+
+
     ############################################
     # OPENS A CSV FILE
     def open_csv_file():
@@ -49,18 +52,34 @@ def main():
         pass
 
     ############################################
+    # ASKS THE USER A YES NO QUESTION
+    def ask(question):
+        response = messagebox.askyesno("XSA - User input",
+                          question,
+                          icon ='question')
+        if response:    # If the answer was "Yes" response is True
+            return True
+        else:           # If the answer was "No" response is False
+            return False
+
+    ############################################
     # DISPLAYS THE DATA FROM THE CSV ONTO THE TREEVIEW
     def display_csv_data(file_path):
         try:
+            header_prsent = ask("Does the file have a header ?")
             with open(file_path, 'r', newline='') as file:
                 csv_reader = csv.reader(file)
-                header = next(csv_reader)  # Read the header row
+                if header_prsent:
+                    header = next(csv_reader)
+                    print(header)  # Read the header row
+                else:
+                    header=["target", "ids", "date", "flag", "user", "text"]
                 tree.delete(*tree.get_children())  # Clear the current data
 
                 tree["columns"] = header
                 for col in header:
                     tree.heading(col, text=col)
-                    tree.column(col, width=100)
+                    tree.column(col, width=170)
 
                 for row in csv_reader:
                     tree.insert("", "end", values=row)
@@ -83,6 +102,7 @@ def main():
     splash_root.destroy()
 
     root = tk.Tk()
+    root.geometry("700x700")
     root.title("X(Twitter) Sentiment Analysis - GUI")
 
     paned_window = ttk.PanedWindow(root, orient="vertical")
@@ -95,16 +115,18 @@ def main():
 
 
     # down frame
-    RBttn = tk.Radiobutton(down_frame, text = "Algo1", command = do_nothing,
+    RBttn = tk.Radiobutton(down_frame, text = "Naïve Bayes", command = do_nothing,
                     value = 1)
     RBttn.pack(padx = 5, pady = 5)
-    RBttn2 = tk.Radiobutton(down_frame, text = "Algo2", command = do_nothing,
+    RBttn2 = tk.Radiobutton(down_frame, text = "S.V.M", command = do_nothing,
                         value = 2)
     RBttn2.pack(padx = 50, pady = 5)
 
-    Button = tk.Button(down_frame, text = "Train", command = do_nothing)
+    Button = tk.Button(down_frame, text = "Train Model", command = do_nothing)
     Button.pack()
 
+    ButtonClean = tk.Button(down_frame, text="Clean Data", command = do_nothing) #future clean data action
+    ButtonClean.pack()
 
     #upper frame
     style = ttk.Style(upper_frame)
