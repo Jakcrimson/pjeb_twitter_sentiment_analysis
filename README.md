@@ -1,4 +1,4 @@
-![alt text](https://github.com/Jackrimson/pjeb_twitter_sentiment_analysis/gui/assets/logo.png%raw=true)
+![alt text](https://github.com/Jackrimson/pjeb_twitter_sentiment_analysis/gui/assets/logo.png?raw=true)
 # X(Twitter) Sentiment Analysis Project
 
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
