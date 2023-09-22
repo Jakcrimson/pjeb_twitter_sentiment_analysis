@@ -1,6 +1,16 @@
 # X(Twitter) Sentiment Analysis Project
+![visitor badge](https://visitor-badge.glitch.me/badge?page_id=jwenjian.visitor-badge)
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+
+## LIBS
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![Pandas](https://img.shields.io/badge/pandas-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white)
+![NumPy](https://img.shields.io/badge/numpy-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white)
+
+## OS
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
+![Windows 11](https://img.shields.io/badge/Windows%2011-%230079d5.svg?style=for-the-badge&logo=Windows%2011&logoColor=white)
+
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 Welcome to the Twitter Sentiment Analysis project, a part of the Master's degree in Machine Learning program at the University of Lille, France. This project aims to provide a comprehensive learning experience in developing a graphical user interface (GUI) and implementing machine learning algorithms from scratch in Python. 
