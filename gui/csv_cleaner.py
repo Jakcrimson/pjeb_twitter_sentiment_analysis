@@ -48,6 +48,7 @@ class Csv_Cleaner():
     def remove_stopwords(self, text):
         stopword = nltk.corpus.stopwords.words('english')
         text = [word for word in text if word not in stopword]
+        print(type(text))
         return text
 
 

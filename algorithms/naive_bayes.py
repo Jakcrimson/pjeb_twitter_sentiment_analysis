@@ -1,0 +1,1 @@
+#to do scratch implementation of naive bayes.

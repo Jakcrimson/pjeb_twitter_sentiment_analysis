@@ -110,6 +110,19 @@ def main():
         
         except Exception as e:
             status_label.config(text=f"Error: {str(e)}")
+
+
+
+
+    def train_model():
+        pass
+
+    def test_model():
+        pass
+
+    def show_model_stats():
+        pass
+
     ############################################
 
 
@@ -133,7 +146,6 @@ def main():
 
     upper_frame = ttk.Labelframe(paned_window, text="CSV Viewer")
     middle_frame = ttk.Labelframe(paned_window, text="CSV Editor")
-    down_frame = ttk.LabelFrame(paned_window, text="Algorithm Selection")
 
 
 
@@ -148,6 +160,15 @@ def main():
                     fieldbackground="white", foreground="black")
 
 
+
+
+
+
+
+
+    ############"
+    # FRAMES ###"
+    ############"
     #upper frame    
     tree = ttk.Treeview(upper_frame, show="headings")
     tree.pack(padx=20, pady=20, fill="both", expand=True)
@@ -186,24 +207,42 @@ def main():
 
 
     # down frame
-    RBttn = tk.Radiobutton(down_frame, text = "Naïve Bayes", command = do_nothing,
-                    value = 1)
-    RBttn.pack(padx = 5, pady = 5)
-    RBttn2 = tk.Radiobutton(down_frame, text = "S.V.M", command = do_nothing,
-                        value = 2)
-    RBttn2.pack(padx = 50, pady = 5)
+    alignment_var = tk.StringVar()
+    algos = ('Dictionnary', 'KNN', 'Naive Bayes')
+    alignments = ('Left', 'Center', 'Right')
 
-    Button = tk.Button(down_frame, text = "Train Model",activebackground='#345',activeforeground='white', command = do_nothing)
-    Button.pack()
+    algoFrame = ttk.LabelFrame(paned_window, text="Algorithm Selection")
+    algoFrame.grid(column=0, row=0, padx=20, pady=20)
 
-    
+    grid_column = 0
+    for name, al in zip(algos, alignments):
+        # create a radio button
+        radio = ttk.Radiobutton(algoFrame, text=name, value=al, variable=alignment_var)
+        radio.grid(column=grid_column, row=0, ipadx=10, ipady=10)
+        # grid column
+        grid_column += 1
 
+    ###########
+    buttonFrame = ttk.LabelFrame(paned_window, text="Action Buttons")
+    buttonFrame.grid(column=0, row=0, padx=20, pady=20)
 
+    alignment_var = tk.StringVar()
+    bts = ('Train', 'Test', 'View Stats')
+    alignments = ('Left', 'Center', 'Right')
+
+    train = ttk.Button(buttonFrame, text="Train", command=train_model)
+    train.grid(column=0, row=0, ipadx=10, ipady=10)
+    test = ttk.Button(buttonFrame, text="Test", command=test_model)
+    test.grid(column=1, row=0, ipadx=10, ipady=10)
+    stats = ttk.Button(buttonFrame, text="Stats", command=show_model_stats)
+    stats.grid(column=2, row=0, ipadx=10, ipady=10)
 
 
     paned_window.add(middle_frame)
     paned_window.add(upper_frame)
-    paned_window.add(down_frame)
+    paned_window.add(algoFrame)
+    paned_window.add(buttonFrame)
+
 
 
 # Set Interval
