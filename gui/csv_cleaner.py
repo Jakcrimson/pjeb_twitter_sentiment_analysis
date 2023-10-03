@@ -2,6 +2,7 @@ import re
 import pandas as pd
 import html
 import string
+from nltk.tokenize import TweetTokenizer
 import nltk
 import csv
 #
@@ -17,19 +18,24 @@ class Csv_Cleaner():
 
     def remove_punct(self, text):
         z  = "".join([char for char in text if char not in string.punctuation])
-        x = re.sub('[0-9]+', '', z)
+        x = re.sub('[0-9]+', "", z)
         return x
 
     def link_process(self, text):
-        x = re.sub(r"(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)", "", text)
+        x = re.sub(r"http\S+", "", text)
+        x = re.sub(r"https\S+", "", text)
         return x
 
     def username_process(self, text):
-        x = re.sub(r"(?<=^|(?<=[^a-zA-Z0-9-_\.]))@([A-Za-z]+[A-Za-z0-9-_]+)" , "@" , text)
+        x = re.sub('@[\w]+',"",text)
+        return x
+
+    def rt_process(self, text):
+        x = re.sub(r"RT", "", text)
         return x
 
     def punc_process(self, text):
-        x = re.sub(r" / ( [ ! \ ? \" \ . ; , ] ) /" , "" , text)
+        x = re.sub(r" / ( [ ! \ ? \ . ; , ] ) /" , "" , text)
         return x
 
     def pct_process(self, text):
@@ -48,24 +54,24 @@ class Csv_Cleaner():
     def remove_stopwords(self, text):
         stopword = nltk.corpus.stopwords.words('english')
         text = [word for word in text if word not in stopword]
-        print(type(text))
         return text
 
 
     def clean(self, data):
-        print(self.data.columns)
-        for text in self.data["text"].values :
-            text = text.lower()
-            text = self.username_process(text)
-            text = self.link_process(text)
-            text = self.dollar_process(text)
-            text = self.pct_process(text)
-            text = self.punc_process(text)
+        tk = TweetTokenizer()
 
-        self.data["Tweet_Tokenized"] = self.data["text"].apply(lambda x:self.tokenization(x.lower()))
+        self.data["text"] = self.data["text"].apply(lambda x:self.username_process(x))
+        self.data["text"] = self.data["text"].apply(lambda x:self.rt_process(x))
+        self.data["text"] = self.data["text"].apply(lambda x:self.link_process(x))
+        self.data["text"] = self.data["text"].apply(lambda x:self.dollar_process(x))
+        self.data["text"] = self.data["text"].apply(lambda x:self.pct_process(x))
+        self.data["text"] = self.data["text"].apply(lambda x:self.punc_process(x))
+
+        self.data["Tweet_Tokenized"] = self.data["text"].apply(lambda x:self.tokenization(x))
         self.data["Tweet_no_stop"] = self.data["Tweet_Tokenized"].apply(lambda x:self.remove_stopwords(x))
 
         self.data = self.data.drop("date", axis=1)
         self.data = self.data.drop("flag", axis=1)
         self.data = self.data.drop("user", axis=1)  
+        self.data = self.data.drop("text", axis=1)
         return self.data

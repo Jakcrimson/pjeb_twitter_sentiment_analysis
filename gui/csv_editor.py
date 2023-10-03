@@ -145,7 +145,7 @@ class Application(Frame):
 
         # get array size & get contents of rows
         with open(filename, "r", newline='\n') as csvfile:
-            rd = csv.reader(csvfile, delimiter=",", quotechar='"')
+            rd = csv.reader(csvfile, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
             for row in rd:
                 ary.append([])
                 col = len(row)

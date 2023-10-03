@@ -1,3 +1,6 @@
+import os, sys
+sys.path.insert(0, os.path.dirname("algorithms"))
+
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
@@ -11,6 +14,8 @@ from tkinter import filedialog
 
 from csv_cleaner import Csv_Cleaner
 from csv_editor import Application
+from algorithms.naive_classification import NaiveClassification
+
 ############################################
 ### splash window
 splash_root = tk.Tk()
@@ -34,13 +39,19 @@ image_label.pack()
 
 
 
-
-
-
-
+number_of_k_value = None
+distance_value = None
+active_dataset = None
 ############################################
-def main():
+def main(): 
 
+    def set_active_dataset(df):
+        global active_dataset
+        active_dataset = df
+
+    def get_active_dataset():
+        global active_dataset
+        return active_dataset
 
     ############################################
     # OPENS A CSV FILE
@@ -48,12 +59,6 @@ def main():
         file_path = filedialog.askopenfilename(title="Open CSV File", filetypes=[("CSV files", "*.csv")])
         if file_path:
             display_csv_data(file_path)
-
-    ############################################
-    # DOES NOTHING
-    def do_nothing():
-        pass
-
 
     ############################################
     # ASKS THE USER A YES NO QUESTION
@@ -72,16 +77,20 @@ def main():
         try:
             clean_data = ask("Would you like to clean your data ?")
             file_name = ""
+            df = pd.read_csv(file_path)
+            set_active_dataset(df)
 
             if clean_data:
                     df = pd.read_csv(file_path)
                     cleaner = Csv_Cleaner(file_path)
                     df = cleaner.clean(df)
 
+                    set_active_dataset(df)
+
                     f = filedialog.asksaveasfile(mode='w', defaultextension=".csv")
                     if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
                         return
-                    f.write(df.to_csv(index=False, sep=",", header=True, quotechar='"', line_terminator="\r"))
+                    f.write(active_dataset.to_csv(index=False, sep=",", header=True, quotechar='"', line_terminator="\r"))
                     file_name = f.name
                     f.close()
             else:
@@ -89,7 +98,7 @@ def main():
 
             header_prsent = ask("Does the file have a header ?")
             with open(file_name, 'r', newline='') as file:
-                csv_reader = csv.reader(file)
+                csv_reader = csv.reader(file, quoting=csv.QUOTE_ALL)
                 if header_prsent:
                     header = next(csv_reader)
                 else:
@@ -103,7 +112,7 @@ def main():
                     tree.column(col, width=300, stretch=True)
 
                 for row in csv_reader:
-                    tree.insert("", "end", values=row)
+                    tree.insert('', "end", values=row)
 
             status_label.config(text=f"CSV file loaded: {file_path}")
 
@@ -112,13 +121,72 @@ def main():
             status_label.config(text=f"Error: {str(e)}")
 
 
+    def user_selection_model_parameter(model):
+        global number_of_k_value
+        global distance_value
+
+        number_of_k_value = tk.StringVar()
+        distance_value = tk.StringVar()
+
+        if model == 'knn':
+            new= tk.Toplevel(root)
+            new.geometry("400x500")
+            new.title("User Input")
+            
+            tk.Label(new, text="Number of K", font=('Helvetica 12 bold')).pack(pady=30)
+            tk.Entry(new, textvariable=number_of_k_value).pack(pady=30, padx=10)
+            
+            tk.Label(new,text="Distance", font=('Helvetica 12 bold')).pack(pady=30)
+            tk.Entry(new, textvariable=distance_value).pack(pady=40, padx=10)
+                
+        tk.Button(new, text="Validate Parameters and exit", command=new.destroy).pack(pady=45)   
+        root.wait_window(new)
 
 
     def train_model():
-        pass
+        selection = algo_var.get()
+        if selection == 'naive_bayes':
+            pass
+
+        elif selection == 'knn':
+            print("going in KNN")
+            user_selection_model_parameter("knn")
+            # print(number_of_k_value.get())
+            # print(distance_value.get())
+
+        elif selection == 'naive_classification':
+            messagebox.showinfo(title="Info", message="Naïve Classification doesn't need training")
+
+
+
 
     def test_model():
-        pass
+        selection = algo_var.get()
+        
+        if selection == 'naive_bayes':
+            pass
+
+        elif selection == 'knn':
+            # knn_classifier = KNN(number_of_k_value, distance_value)
+            pass
+
+        elif selection == 'naive_classification':
+            if isinstance(get_active_dataset(), type(None)):
+                messagebox.showwarning(title="Warning", message="Please load a dataset in the CSV viewer")
+            else: 
+                nc = NaiveClassification(active_dataset)
+                classified_df = nc.get_classified()
+                set_active_dataset(classified_df)
+                f = filedialog.asksaveasfile(mode='w', defaultextension=".csv")
+                if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
+                    return
+
+                f.write(active_dataset.to_csv(index=False, sep=",", header=True, quotechar='"', line_terminator="\r"))
+                file_name = f.name
+                f.close()
+                display_csv_data(file_name)
+                
+
 
     def show_model_stats():
         pass
@@ -207,28 +275,23 @@ def main():
 
 
     # down frame
-    alignment_var = tk.StringVar()
-    algos = ('Dictionnary', 'KNN', 'Naive Bayes')
-    alignments = ('Left', 'Center', 'Right')
+    algo_var = tk.StringVar()
 
-    algoFrame = ttk.LabelFrame(paned_window, text="Algorithm Selection")
+    algoFrame = ttk.LabelFrame(paned_window, text="Algorithm Selection (Testing and Training are done on the file opened in the CSV Viewer !)")
     algoFrame.grid(column=0, row=0, padx=20, pady=20)
+    
+    # create a radio button
+    naive_classif = ttk.Radiobutton(algoFrame, text='Dictionnary', value='naive_classification', variable=algo_var)
+    naive_classif.grid(column=0, row=0, ipadx=10, ipady=10)
+    knn = ttk.Radiobutton(algoFrame, text='KNN', value='knn', variable=algo_var)
+    knn.grid(column=1, row=0, ipadx=10, ipady=10)
+    naive_bayes = ttk.Radiobutton(algoFrame, text='Naive Bayes', value='naive_bayes', variable=algo_var)
+    naive_bayes.grid(column=2, row=0, ipadx=10, ipady=10)
 
-    grid_column = 0
-    for name, al in zip(algos, alignments):
-        # create a radio button
-        radio = ttk.Radiobutton(algoFrame, text=name, value=al, variable=alignment_var)
-        radio.grid(column=grid_column, row=0, ipadx=10, ipady=10)
-        # grid column
-        grid_column += 1
 
     ###########
     buttonFrame = ttk.LabelFrame(paned_window, text="Action Buttons")
     buttonFrame.grid(column=0, row=0, padx=20, pady=20)
-
-    alignment_var = tk.StringVar()
-    bts = ('Train', 'Test', 'View Stats')
-    alignments = ('Left', 'Center', 'Right')
 
     train = ttk.Button(buttonFrame, text="Train", command=train_model)
     train.grid(column=0, row=0, ipadx=10, ipady=10)
