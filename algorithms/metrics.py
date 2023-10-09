@@ -53,7 +53,7 @@ class Metrics(Frame):
                 correct_predictions += 1
         
         #returns accuracy
-        return 1 - correct_predictions / len(y_true)
+        return correct_predictions / len(y_true)
     
 
 
@@ -73,11 +73,55 @@ class Metrics(Frame):
                 incorrect_predictions +=1
         
         #returns accuracy
-        return (correct_predictions / len(y_true))
+        return 1-(correct_predictions / len(y_true))
 
         
 
+    # Functions to compute True Positives, True Negatives, False Positives and False Negatives
 
+    def true_positive(self,y_true, y_pred):
+        
+        tp = 0
+        
+        for yt, yp in zip(y_true, y_pred):
+            
+            if yt == 1 and yp == 1:
+                tp += 1
+        
+        return tp
+
+    def true_negative(self,y_true, y_pred):
+        
+        tn = 0
+        
+        for yt, yp in zip(y_true, y_pred):
+            
+            if yt == 0 and yp == 0:
+                tn += 1
+                
+        return tn
+
+    def false_positive(self,y_true, y_pred):
+        
+        fp = 0
+        
+        for yt, yp in zip(y_true, y_pred):
+            
+            if yt == 0 and yp == 1:
+                fp += 1
+                
+        return fp
+
+    def false_negative(self,y_true, y_pred):
+        
+        fn = 0
+        
+        for yt, yp in zip(y_true, y_pred):
+            
+            if yt == 1 and yp == 0:
+                fn += 1
+                
+        return fn
     
 
 

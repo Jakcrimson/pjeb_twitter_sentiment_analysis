@@ -181,7 +181,7 @@ class Application(Frame):
         # create the new cells
         for i in range(len(ary)):
             for j in range(len(ary[0])):
-                tmp = Text(self, width=widths[j]+5, height=1)
+                tmp = Text(self, width=widths[j]+20, height=2)
                 tmp.bind("<Tab>", self.focus_tab)
                 tmp.bind("<Shift-Tab>", self.focus_sh_tab)
                 tmp.bind("<Return>", self.focus_down)
