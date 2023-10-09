@@ -16,13 +16,13 @@ class NaiveClassification():
 
     def __init__(self, data) -> None:
         pos = []
-        with open(r'D:\work\Lille Master ML\PJEB\source\algorithms\corpus\utf8_pos.txt',encoding='utf8') as f:
+        with open(r'algorithms/corpus/utf8_pos.txt',encoding='utf8') as f:
             pos.append(f.readlines())
         
         self.pos = pos[0][0].split(",")
         
         neg = []
-        with open(r'D:\work\Lille Master ML\PJEB\source\algorithms\corpus\utf8_neg.txt', encoding='utf8') as f:
+        with open(r'algorithms/corpus/utf8_neg.txt', encoding='utf8') as f:
             neg.append(f.readlines())
         
         self.neg = neg[0][0].split(",")
@@ -107,6 +107,7 @@ class NaiveClassification():
         self.classify()
         return self.data
     
+
         
 
     

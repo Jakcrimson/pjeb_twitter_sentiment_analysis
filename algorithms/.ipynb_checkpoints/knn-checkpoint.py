@@ -1,1 +1,0 @@
-#to do scratch implemtation of KNN

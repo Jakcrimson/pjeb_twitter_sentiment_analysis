@@ -15,6 +15,7 @@ from tkinter import filedialog
 from csv_cleaner import Csv_Cleaner
 from csv_editor import Application
 from algorithms.naive_classification import NaiveClassification
+from algorithms.metrics import Metrics
 
 ############################################
 ### splash window
@@ -90,7 +91,7 @@ def main():
                     f = filedialog.asksaveasfile(mode='w', defaultextension=".csv")
                     if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
                         return
-                    f.write(active_dataset.to_csv(index=False, sep=",", header=True, quotechar='"', line_terminator="\r"))
+                    f.write(active_dataset.to_csv(index=False, sep=",", header=True, quotechar='"', lineterminator="\r"))
                     file_name = f.name
                     f.close()
             else:
@@ -122,6 +123,11 @@ def main():
 
 
     def user_selection_model_parameter(model):
+        """Allows the user to select the hyperparameters of his model before training the model.
+
+        Args:
+            model (str): the str equivalent of the model (e.g : 'knn', 'naive_classification', 'naive_bayes' ...)
+        """
         global number_of_k_value
         global distance_value
 
@@ -138,15 +144,20 @@ def main():
             
             tk.Label(new,text="Distance", font=('Helvetica 12 bold')).pack(pady=30)
             tk.Entry(new, textvariable=distance_value).pack(pady=40, padx=10)
+
+        if model == "naive_bayes":
+            pass
                 
         tk.Button(new, text="Validate Parameters and exit", command=new.destroy).pack(pady=45)   
         root.wait_window(new)
 
 
     def train_model():
+        """trains the model based on the parameters that were input by the user.
+        """
         selection = algo_var.get()
         if selection == 'naive_bayes':
-            pass
+            messagebox.showinfo(title="Info", message="Not implemented yet -_-")
 
         elif selection == 'knn':
             print("going in KNN")
@@ -161,14 +172,15 @@ def main():
 
 
     def test_model():
+        """tests the model based on the parameters that were input by the user.
+        """
         selection = algo_var.get()
         
         if selection == 'naive_bayes':
-            pass
+            messagebox.showinfo(title="Info", message="Not implemented yet -_-")
 
         elif selection == 'knn':
-            # knn_classifier = KNN(number_of_k_value, distance_value)
-            pass
+            messagebox.showinfo(title="Info", message="Not implemented yet -_-")
 
         elif selection == 'naive_classification':
             if isinstance(get_active_dataset(), type(None)):
@@ -181,7 +193,7 @@ def main():
                 if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
                     return
 
-                f.write(active_dataset.to_csv(index=False, sep=",", header=True, quotechar='"', line_terminator="\r"))
+                f.write(active_dataset.to_csv(index=False, sep=",", header=True, quotechar='"', lineterminator="\r"))
                 file_name = f.name
                 f.close()
                 display_csv_data(file_name)
@@ -189,7 +201,16 @@ def main():
 
 
     def show_model_stats():
-        pass
+        selection = algo_var.get()
+        if selection=="knn":
+            messagebox.showinfo(title="Information", message="Not implemented yet")
+        if selection=="naive_bayes":
+            messagebox.showinfo(title="Information", message="Not implemented yet")
+        if selection=="naive_classification":
+            metrics = Metrics(active_dataset, parent=root, model=selection)
+
+
+        
 
     ############################################
 
