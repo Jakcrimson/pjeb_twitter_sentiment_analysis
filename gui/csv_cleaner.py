@@ -8,6 +8,7 @@ import csv
 #
 
 
+
 class Csv_Cleaner():
 
     def __init__(self, pathfile) -> None:

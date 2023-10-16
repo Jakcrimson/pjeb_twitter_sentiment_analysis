@@ -61,7 +61,6 @@ class NaiveClassification():
             int : the number of negative words in the tweet 
         """
         count = []
-        print(self.data)
         tokens = self.data['Tweet_no_stop'].tolist()
 
         for i in range(len(tokens)):

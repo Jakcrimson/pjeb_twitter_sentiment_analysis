@@ -1,6 +1,10 @@
+from ast import literal_eval
 import os, sys
+
+from numpy import number
 sys.path.insert(0, os.path.dirname("algorithms"))
 
+import copy
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
@@ -16,6 +20,7 @@ from csv_cleaner import Csv_Cleaner
 from csv_editor import Application
 from algorithms.naive_classification import NaiveClassification
 from algorithms.metrics import Metrics
+from algorithms.knn import KNN 
 
 ############################################
 ### splash window
@@ -130,20 +135,28 @@ def main():
         """
         global number_of_k_value
         global distance_value
+        global vote_value
+
 
         number_of_k_value = tk.StringVar()
         distance_value = tk.StringVar()
+        vote_value = tk.StringVar()
 
         if model == 'knn':
             new= tk.Toplevel(root)
-            new.geometry("400x500")
+            new.geometry("400x700")
             new.title("User Input")
             
             tk.Label(new, text="Number of K", font=('Helvetica 12 bold')).pack(pady=30)
             tk.Entry(new, textvariable=number_of_k_value).pack(pady=30, padx=10)
             
             tk.Label(new,text="Distance", font=('Helvetica 12 bold')).pack(pady=30)
-            tk.Entry(new, textvariable=distance_value).pack(pady=40, padx=10)
+            choices = ["naive", "levenshtein", "lcs", "damerau_levenshtein", "hamming", "jaro", "cosine", "jaccard", "sorensen_dice", "qgram_dice"]
+            ttk.Combobox(new, textvariable=distance_value, values=choices).pack(pady=40, padx=10)
+
+            tk.Label(new, text="Vote", font=('Helvetica 12 bold')).pack(pady=30)
+            votes = ["majoritaire", "pondéré"]
+            ttk.Combobox(new, textvariable=vote_value, values=votes).pack(pady=50, padx=10)
 
         if model == "naive_bayes":
             pass
@@ -160,10 +173,10 @@ def main():
             messagebox.showinfo(title="Info", message="Not implemented yet -_-")
 
         elif selection == 'knn':
-            print("going in KNN")
-            user_selection_model_parameter("knn")
-            # print(number_of_k_value.get())
-            # print(distance_value.get())
+            if isinstance(get_active_dataset(), type(None)):
+                messagebox.showwarning(title="Warning", message="Please load a training dataset in the CSV viewer")
+            else:
+                messagebox.showinfo(title="Info", message="KNN Classification doesn't technically need training")
 
         elif selection == 'naive_classification':
             messagebox.showinfo(title="Info", message="Naïve Classification doesn't need training")
@@ -180,7 +193,32 @@ def main():
             messagebox.showinfo(title="Info", message="Not implemented yet -_-")
 
         elif selection == 'knn':
-            messagebox.showinfo(title="Info", message="Not implemented yet -_-")
+            if isinstance(get_active_dataset(), type(None)):
+                messagebox.showwarning(title="Warning", message="Please load a training dataset in the CSV viewer")
+            else:
+
+                df_train = copy.deepcopy(active_dataset)
+                messagebox.showinfo(title="Info KNN", message="Load your testing data")
+                open_csv_file()
+                df_test = active_dataset
+                print(type(df_train))
+                user_selection_model_parameter("knn")     
+                knn_model = KNN(df_train, number_of_k_value, distance_value, vote_value)
+                
+
+                classifications = []
+                for tweet_token in df_test["Tweet_Tokenized"]:
+                    tweet_a_categoriser = " ".join(literal_eval(tweet_token))
+                    print((tweet_a_categoriser))
+                    print((df_train["target"]))
+                    classifications.append(knn_model.classification(tweet_a_categoriser))
+                df_test["knn_label"] = classifications
+
+                f.write(df_test.to_csv(index=False, sep=",", header=True, quotechar='"', lineterminator="\r"))
+                file_name = f.name
+                f.close()
+                display_csv_data(file_name)
+            
 
         elif selection == 'naive_classification':
             if isinstance(get_active_dataset(), type(None)):
