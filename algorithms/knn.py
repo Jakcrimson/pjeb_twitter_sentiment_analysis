@@ -34,7 +34,9 @@ class KNN():
             return distances
         
         if self.distance == "levenshtein":
+            print(self.data["Tweet_Tokenized"])
             for autre_tweet in self.data["Tweet_Tokenized"]:
+                print("cat : "+tweet_a_categoriser)
                 autre_tweet_temp = " ".join(autre_tweet)
                 simi = levenshtein_similarity(tweet_a_categoriser,autre_tweet_temp)
                 distance_tweet = 1 - simi
@@ -107,6 +109,10 @@ class KNN():
         
     
     def classification(self, tweet_a_categoriser):
+        print(type(tweet_a_categoriser))
+        print(tweet_a_categoriser)
+        print(type(self.data['target']))
+        print(self.liste_distance(tweet_a_categoriser))
         label_et_distance_proches_voisins_croissant = [(x,y) for (x,y) in zip(self.data["target"],self.liste_distance(tweet_a_categoriser))]
         label_et_distance_proches_voisins_croissant.sort(key=lambda x: x[1])
         votes = {}

@@ -1,12 +1,18 @@
 from ast import literal_eval
 import os, sys
+import customtkinter as ctk 
+from PIL import Image
+
+ctk.set_appearance_mode("dark") 
+  
+ctk.set_default_color_theme("blue") 
 
 from numpy import number
 sys.path.insert(0, os.path.dirname("algorithms"))
 
 import copy
 import tkinter as tk
-from tkinter import ttk
+from tkinter import PanedWindow, ttk
 from tkinter import filedialog
 from tkinter import messagebox
 import csv
@@ -31,7 +37,7 @@ splash_root.title('XSA - GUI')
 splash_root.geometry("500x500")
  
 path = Path(__file__).parent / "."
-logo_path = (path / "./assets/logo.png").resolve()
+logo_path = (path / "./assets/black_logo.png").resolve()
 
 photo = tk.PhotoImage(file=logo_path)
 image_label = ttk.Label(
@@ -80,7 +86,7 @@ def main():
     ############################################
     # DISPLAYS THE DATA FROM THE CSV ONTO THE TREEVIEW
     def display_csv_data(file_path):
-        try:
+        #try:
             clean_data = ask("Would you like to clean your data ?")
             file_name = ""
             df = pd.read_csv(file_path)
@@ -120,11 +126,11 @@ def main():
                 for row in csv_reader:
                     tree.insert('', "end", values=row)
 
-            status_label.config(text=f"CSV file loaded: {file_path}")
+            #status_label.config(text=f"CSV file loaded: {file_path}")
 
         
-        except Exception as e:
-            status_label.config(text=f"Error: {str(e)}")
+        #except Exception as e:
+            #status_label.setvar(text=f"Error: {str(e)}")
 
 
     def user_selection_model_parameter(model):
@@ -143,25 +149,28 @@ def main():
         vote_value = tk.StringVar()
 
         if model == 'knn':
-            new= tk.Toplevel(root)
-            new.geometry("400x700")
+            new= ctk.CTkToplevel(master=root)
+            new.geometry("400x600")
             new.title("User Input")
             
-            tk.Label(new, text="Number of K", font=('Helvetica 12 bold')).pack(pady=30)
-            tk.Entry(new, textvariable=number_of_k_value).pack(pady=30, padx=10)
-            
-            tk.Label(new,text="Distance", font=('Helvetica 12 bold')).pack(pady=30)
-            choices = ["naive", "levenshtein", "lcs", "damerau_levenshtein", "hamming", "jaro", "cosine", "jaccard", "sorensen_dice", "qgram_dice"]
-            ttk.Combobox(new, textvariable=distance_value, values=choices).pack(pady=40, padx=10)
+            my_font = ctk.CTkFont(family="Helvetica", size=20, weight="bold")
 
-            tk.Label(new, text="Vote", font=('Helvetica 12 bold')).pack(pady=30)
+
+            ctk.CTkLabel(new, text="Number of K", font=my_font).pack(pady=20)
+            ctk.CTkEntry(new, textvariable=number_of_k_value).pack(pady=20, padx=10)
+            
+            ctk.CTkLabel(new,text="Distance", font=my_font).pack(pady=20)
+            choices = ["naive", "levenshtein", "lcs", "damerau_levenshtein", "hamming", "jaro", "cosine", "jaccard", "sorensen_dice", "qgram_dice"]
+            ctk.CTkComboBox(new, variable=distance_value, values=choices).pack(pady=40, padx=10)
+
+            ctk.CTkLabel(new, text="Vote", font=my_font).pack(pady=20)
             votes = ["majoritaire", "pondéré"]
-            ttk.Combobox(new, textvariable=vote_value, values=votes).pack(pady=50, padx=10)
+            ctk.CTkComboBox(new, variable=vote_value, values=votes).pack(pady=20, padx=10)
 
         if model == "naive_bayes":
             pass
                 
-        tk.Button(new, text="Validate Parameters and exit", command=new.destroy).pack(pady=45)   
+        ctk.CTkButton(new, text="Validate Parameters and exit", command=new.destroy).pack(pady=30)   
         root.wait_window(new)
 
 
@@ -200,17 +209,15 @@ def main():
                 df_train = copy.deepcopy(active_dataset)
                 messagebox.showinfo(title="Info KNN", message="Load your testing data")
                 open_csv_file()
-                df_test = active_dataset
-                print(type(df_train))
+                df_test = copy.deepcopy(active_dataset)
                 user_selection_model_parameter("knn")     
                 knn_model = KNN(df_train, number_of_k_value, distance_value, vote_value)
                 
 
                 classifications = []
+                print(df_test['Tweet_Tokenized'])
                 for tweet_token in df_test["Tweet_Tokenized"]:
                     tweet_a_categoriser = " ".join(literal_eval(tweet_token))
-                    print((tweet_a_categoriser))
-                    print((df_train["target"]))
                     classifications.append(knn_model.classification(tweet_a_categoriser))
                 df_test["knn_label"] = classifications
 
@@ -253,42 +260,31 @@ def main():
     ############################################
 
 
-
-
-
-
     ############################################
     # FRAME BUILDING
     ############################################
-    splash_root.destroy()
 
-    root = tk.Tk()
-    root.geometry("800x800")
+    splash_root.destroy()
+    root = ctk.CTk()
+    root.geometry("1000x600")
     root.title("X(Twitter) Sentiment Analysis - GUI")
 
-    paned_window = ttk.PanedWindow(root, orient="vertical")
+    paned_window = tk.PanedWindow(root, orient="vertical", borderwidth=0)
     paned_window.pack(fill='both', expand=True)
 
+    upper_frame = ctk.CTkFrame(paned_window, width=600, height=600,  border_width=0)
+    middle_frame = ctk.CTkFrame(paned_window, width=600, height=600,  border_width=0)
 
-
-    upper_frame = ttk.Labelframe(paned_window, text="CSV Viewer")
-    middle_frame = ttk.Labelframe(paned_window, text="CSV Editor")
-
-
-
-    ############"
+    ###########"
     # STYLES ###"
-    ############"
+    ###########"
     # Create style Object    
     style = ttk.Style(upper_frame)
     # set ttk theme to "clam" which support the fieldbackground option
     style.theme_use("clam")
     style.configure("Treeview", background="white", 
-                    fieldbackground="white", foreground="black")
-
-
-
-
+                    fieldbackground="#1e1b24", foreground="black")
+    style.configure("TPanedwindow", background="black")
 
 
 
@@ -300,22 +296,22 @@ def main():
     tree = ttk.Treeview(upper_frame, show="headings")
     tree.pack(padx=20, pady=20, fill="both", expand=True)
 
-    status_label = tk.Label(upper_frame, text="", padx=20, pady=10)
+    status_label = ctk.CTkLabel(upper_frame, text="", padx=20, pady=10)
     status_label.pack()
 
-    open_button = tk.Button(upper_frame, text="Open CSV file", activebackground='#345',activeforeground='white', command=open_csv_file)
+    open_button = ctk.CTkButton(upper_frame, text="Open CSV file",command=open_csv_file)
     open_button.pack(padx=20, pady=10)
 
 
     #middle frame
     csv_editor = Application(middle_frame)
     csv_editor.pack()
-    open_button = tk.Button(middle_frame, text="Open CSV file",activebackground='#345',activeforeground='white', command=csv_editor.loadCells)
+    open_button = ctk.CTkButton(middle_frame, text="Open CSV file",command=csv_editor.loadCells)
     open_button.pack(padx=50, pady=10)
 
-    menubar = Menu(root)
+    menubar = Menu(root, background='#1E1B24', fg='white')
 
-    filemenu = Menu(menubar, tearoff=0)
+    filemenu = Menu(menubar, tearoff=0, background='#1E1B24', fg='white')
     filemenu.add_command(label="New", command=csv_editor.newCells)     # add save dialog
     # add save dialog
     filemenu.add_command(label="Open", command=csv_editor.loadCells)
@@ -325,7 +321,7 @@ def main():
     menubar.add_cascade(label="File", menu=filemenu)
     menubar.add_command(label="Exit", command=csv_editor.quit)
 
-    root.config(menu=menubar)
+    root.config(menu=menubar, background="#1E1B24")
 
     default_font = font.nametofont("TkTextFont")
     default_font.configure(family="Helvetica")
@@ -336,27 +332,27 @@ def main():
     # down frame
     algo_var = tk.StringVar()
 
-    algoFrame = ttk.LabelFrame(paned_window, text="Algorithm Selection (Testing and Training are done on the file opened in the CSV Viewer !)")
+    algoFrame = ctk.CTkFrame(paned_window, width=600, height=600,  border_width=0)
     algoFrame.grid(column=0, row=0, padx=20, pady=20)
     
     # create a radio button
-    naive_classif = ttk.Radiobutton(algoFrame, text='Dictionnary', value='naive_classification', variable=algo_var)
+    naive_classif = ctk.CTkRadioButton(algoFrame, text='Dictionnary', value='naive_classification', variable=algo_var)
     naive_classif.grid(column=0, row=0, ipadx=10, ipady=10)
-    knn = ttk.Radiobutton(algoFrame, text='KNN', value='knn', variable=algo_var)
+    knn = ctk.CTkRadioButton(algoFrame, text='KNN', value='knn', variable=algo_var)
     knn.grid(column=1, row=0, ipadx=10, ipady=10)
-    naive_bayes = ttk.Radiobutton(algoFrame, text='Naive Bayes', value='naive_bayes', variable=algo_var)
+    naive_bayes = ctk.CTkRadioButton(algoFrame, text='Naive Bayes', value='naive_bayes', variable=algo_var)
     naive_bayes.grid(column=2, row=0, ipadx=10, ipady=10)
 
 
     ###########
-    buttonFrame = ttk.LabelFrame(paned_window, text="Action Buttons")
+    buttonFrame = ctk.CTkFrame(paned_window, width=600, height=600, border_width=0)
     buttonFrame.grid(column=0, row=0, padx=20, pady=20)
 
-    train = ttk.Button(buttonFrame, text="Train", command=train_model)
+    train = ctk.CTkButton(buttonFrame, text="Train", command=train_model)
     train.grid(column=0, row=0, ipadx=10, ipady=10)
-    test = ttk.Button(buttonFrame, text="Test", command=test_model)
+    test = ctk.CTkButton(buttonFrame, text="Test", command=test_model)
     test.grid(column=1, row=0, ipadx=10, ipady=10)
-    stats = ttk.Button(buttonFrame, text="Stats", command=show_model_stats)
+    stats = ctk.CTkButton(buttonFrame, text="Stats", command=show_model_stats)
     stats.grid(column=2, row=0, ipadx=10, ipady=10)
 
 
@@ -365,13 +361,11 @@ def main():
     paned_window.add(algoFrame)
     paned_window.add(buttonFrame)
 
+    root.mainloop()
 
 
 # Set Interval
-splash_root.after(3000, main)
+splash_root.after(0, main)
  
 # Execute tkinter
 splash_root.mainloop()
-    
-
-

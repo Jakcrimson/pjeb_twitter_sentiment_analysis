@@ -196,7 +196,7 @@ class Application(Frame):
 
                 if(i == 0):
                     tmp.config(font=("Helvetica", 10, font.BOLD))
-                    tmp.config(relief=FLAT, bg="white")
+                    tmp.config(relief=FLAT, bg="#1E1B24", foreground="#1E1B24")
 
                 loadCells[i][j] = tmp
                 tmp.focus_force()
