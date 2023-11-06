@@ -210,18 +210,25 @@ def main():
                 messagebox.showinfo(title="Info KNN", message="Load your testing data")
                 open_csv_file()
                 df_test = copy.deepcopy(active_dataset)
-                user_selection_model_parameter("knn")     
-                knn_model = KNN(df_train, number_of_k_value, distance_value, vote_value)
+                user_selection_model_parameter("knn")
+                print("DISTANCE VALUE ",distance_value.get())
+                print("N°K ",number_of_k_value.get())
+                print("VOTE VALUE ",vote_value.get())
+                knn_model = KNN(df_train ,number_of_k_value.get(), distance_value.get(), vote_value.get())
                 
 
                 classifications = []
-                print(df_test['Tweet_Tokenized'])
                 for tweet_token in df_test["Tweet_Tokenized"]:
                     tweet_a_categoriser = " ".join(literal_eval(tweet_token))
                     classifications.append(knn_model.classification(tweet_a_categoriser))
-                df_test["knn_label"] = classifications
+                df_test["model_class"] = classifications
 
-                f.write(df_test.to_csv(index=False, sep=",", header=True, quotechar='"', lineterminator="\r"))
+                set_active_dataset(df_test)
+                f = filedialog.asksaveasfile(mode='w', defaultextension=".csv")
+                if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
+                    return
+
+                f.write(active_dataset.to_csv(index=False, sep=",", header=True, quotechar='"', lineterminator="\r"))
                 file_name = f.name
                 f.close()
                 display_csv_data(file_name)
@@ -248,7 +255,7 @@ def main():
     def show_model_stats():
         selection = algo_var.get()
         if selection=="knn":
-            messagebox.showinfo(title="Information", message="Not implemented yet")
+            metrics = Metrics(active_dataset, parent=root, model=selection)
         if selection=="naive_bayes":
             messagebox.showinfo(title="Information", message="Not implemented yet")
         if selection=="naive_classification":
@@ -339,9 +346,9 @@ def main():
     naive_classif = ctk.CTkRadioButton(algoFrame, text='Dictionnary', value='naive_classification', variable=algo_var)
     naive_classif.grid(column=0, row=0, ipadx=10, ipady=10)
     knn = ctk.CTkRadioButton(algoFrame, text='KNN', value='knn', variable=algo_var)
-    knn.grid(column=1, row=0, ipadx=10, ipady=10)
+    knn.grid(column=1, row=0, ipadx=10, ipady=10, sticky=tk.E)
     naive_bayes = ctk.CTkRadioButton(algoFrame, text='Naive Bayes', value='naive_bayes', variable=algo_var)
-    naive_bayes.grid(column=2, row=0, ipadx=10, ipady=10)
+    naive_bayes.grid(column=2, row=0, ipadx=10, ipady=10, sticky=tk.NS)
 
 
     ###########

@@ -94,7 +94,7 @@ class NaiveClassification():
             else:
                 naive_class.append(2)
 
-        self.data["naive_label"] = naive_class
+        self.data["model_class"] = naive_class
 
 
     def get_classified(self):

@@ -14,7 +14,6 @@ class KNN():
         
     def liste_distance(self, tweet_a_categoriser):
         distances = []
-        
         if self.distance == "naïve":
             mots_tweet = tweet_a_categoriser.split()
             nombre_de_mots_tweet = len(self.data["text"])
@@ -34,9 +33,7 @@ class KNN():
             return distances
         
         if self.distance == "levenshtein":
-            print(self.data["Tweet_Tokenized"])
             for autre_tweet in self.data["Tweet_Tokenized"]:
-                print("cat : "+tweet_a_categoriser)
                 autre_tweet_temp = " ".join(autre_tweet)
                 simi = levenshtein_similarity(tweet_a_categoriser,autre_tweet_temp)
                 distance_tweet = 1 - simi
@@ -109,10 +106,6 @@ class KNN():
         
     
     def classification(self, tweet_a_categoriser):
-        print(type(tweet_a_categoriser))
-        print(tweet_a_categoriser)
-        print(type(self.data['target']))
-        print(self.liste_distance(tweet_a_categoriser))
         label_et_distance_proches_voisins_croissant = [(x,y) for (x,y) in zip(self.data["target"],self.liste_distance(tweet_a_categoriser))]
         label_et_distance_proches_voisins_croissant.sort(key=lambda x: x[1])
         votes = {}
@@ -121,7 +114,7 @@ class KNN():
         votes["0"] = 0
             
         if self.vote == "majoritaire":
-            for i in range(0,self.nombre_voisins):
+            for i in range(0,int(self.nombre_voisins)):
                 if label_et_distance_proches_voisins_croissant[i][0] == 4:
                     votes["4"] += 1
                 elif label_et_distance_proches_voisins_croissant[i][0] == 2:
@@ -137,7 +130,7 @@ class KNN():
             return label
         
         if self.vote == "pondéré":
-            for i in range(0,self.nombre_voisins):
+            for i in range(0,int(self.nombre_voisins)):
                 if label_et_distance_proches_voisins_croissant[i][0] == 4:
                     votes["4"] += 1/((label_et_distance_proches_voisins_croissant[i][1])**2)
                     
@@ -153,6 +146,3 @@ class KNN():
                     label = i #on prend en compte la dernière étiquette égale au max 
             return label
             
-# data_train = pd.read_csv(r"C:\Work\Lille Master ML\PJEB\TRAIN_CLEANED.csv")
-# KNN = KNN(data_train, 10, "levenshtein", "majoritaire")
-# KNN.classification("how can you not love Obama? he makes jokes about himself.")

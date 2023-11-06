@@ -43,7 +43,7 @@ class Metrics(Frame):
         
         # Intitializing variable to store count of correctly predicted classes
         y_true = self.classified_dataset["target"].values
-        y_pred = self.classified_dataset["naive_label"].values
+        y_pred = self.classified_dataset["model_class"].values
         correct_predictions = 0
         
         for yt, yp in zip(y_true, y_pred):
@@ -61,7 +61,7 @@ class Metrics(Frame):
 
         # Intitializing variable to store count of correctly predicted classes
         y_true = self.classified_dataset["target"].values
-        y_pred = self.classified_dataset["naive_label"].values
+        y_pred = self.classified_dataset["model_class"].values
         correct_predictions = 0
         incorrect_predictions = 0
         for yt, yp in zip(y_true, y_pred):
