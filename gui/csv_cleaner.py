@@ -11,10 +11,14 @@ import csv
 
 class Csv_Cleaner():
 
-    def __init__(self, pathfile) -> None:
-        self.data = pd.read_csv(pathfile, header=0)
-        self.data.columns = ["target", "ids", "date", "flag", "user", "text"]
-        print("csv cleaner init pass")
+    def __init__(self, pathfile=None, is_single_input=False, single_input=None) -> None:
+        self.is_single_input = is_single_input
+        if is_single_input == True:
+            self.data = single_input
+        else:
+            self.data = pd.read_csv(pathfile, header=0)
+            self.data.columns = ["target", "ids", "date", "flag", "user", "text"]
+            print("csv cleaner init pass")
 
 
     def remove_punct(self, text):
@@ -58,21 +62,35 @@ class Csv_Cleaner():
         return text
 
 
-    def clean(self, data):
-        tk = TweetTokenizer()
+    def clean(self):
+        if self.is_single_input == False:
+            tk = TweetTokenizer()
 
-        self.data["text"] = self.data["text"].apply(lambda x:self.username_process(x))
-        self.data["text"] = self.data["text"].apply(lambda x:self.rt_process(x))
-        self.data["text"] = self.data["text"].apply(lambda x:self.link_process(x))
-        self.data["text"] = self.data["text"].apply(lambda x:self.dollar_process(x))
-        self.data["text"] = self.data["text"].apply(lambda x:self.pct_process(x))
-        self.data["text"] = self.data["text"].apply(lambda x:self.punc_process(x))
+            self.data["text"] = self.data["text"].apply(lambda x:self.username_process(x))
+            self.data["text"] = self.data["text"].apply(lambda x:self.rt_process(x))
+            self.data["text"] = self.data["text"].apply(lambda x:self.link_process(x))
+            self.data["text"] = self.data["text"].apply(lambda x:self.dollar_process(x))
+            self.data["text"] = self.data["text"].apply(lambda x:self.pct_process(x))
+            self.data["text"] = self.data["text"].apply(lambda x:self.punc_process(x))
 
-        self.data["Tweet_Tokenized"] = self.data["text"].apply(lambda x:self.tokenization(x))
-        self.data["Tweet_no_stop"] = self.data["Tweet_Tokenized"].apply(lambda x:self.remove_stopwords(x))
+            self.data["Tweet_Tokenized"] = self.data["text"].apply(lambda x:self.tokenization(x))
+            self.data["Tweet_no_stop"] = self.data["Tweet_Tokenized"].apply(lambda x:self.remove_stopwords(x))
 
-        self.data = self.data.drop("date", axis=1)
-        self.data = self.data.drop("flag", axis=1)
-        self.data = self.data.drop("user", axis=1)  
-        self.data = self.data.drop("text", axis=1)
-        return self.data
+            self.data = self.data.drop("date", axis=1)
+            self.data = self.data.drop("flag", axis=1)
+            self.data = self.data.drop("user", axis=1)  
+            self.data = self.data.drop("text", axis=1)
+            return self.data
+        
+        else :
+            self.data = self.username_process(self.data)
+            self.data = self.rt_process(self.data)
+            self.data = self.link_process(self.data)
+            self.data = self.dollar_process(self.data)
+            self.data = self.pct_process(self.data)
+            self.data = self.punc_process(self.data)
+            self.data = self.tokenization(self.data)
+            self.data = self.remove_stopwords(self.data)
+            print(self.data)
+            return self.data
+

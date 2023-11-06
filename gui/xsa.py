@@ -50,7 +50,7 @@ image_label.pack()
 ############################################
 
 
-
+single_input_classification = None
 number_of_k_value = None
 distance_value = None
 active_dataset = None
@@ -95,7 +95,7 @@ def main():
             if clean_data:
                     df = pd.read_csv(file_path)
                     cleaner = Csv_Cleaner(file_path)
-                    df = cleaner.clean(df)
+                    df = cleaner.clean()
 
                     set_active_dataset(df)
 
@@ -191,6 +191,47 @@ def main():
             messagebox.showinfo(title="Info", message="Naïve Classification doesn't need training")
 
 
+    def get_user_input_for_single_classification():
+        global single_input_classification
+        single_input_classification = tk.StringVar()
+
+        new= ctk.CTkToplevel(master=root)
+        new.geometry("300x300")
+        new.title("User Input")
+        
+        my_font = ctk.CTkFont(family="Helvetica", size=20, weight="bold")
+
+
+        ctk.CTkLabel(new, text="Tweet Input", font=my_font).pack(pady=20)
+        ctk.CTkEntry(new, width=200,textvariable=single_input_classification).pack(pady=20, padx=10)
+
+        ctk.CTkButton(new, text="Validate input and exit", command=new.destroy).pack(pady=30)   
+        root.wait_window(new)
+
+
+    def test_model_single_input():
+        selection = algo_var.get()
+        
+        if selection == 'naive_bayes':
+            messagebox.showinfo(title="Info", message="Not implemented yet -_-")    
+
+        if selection == 'knn':
+            if isinstance(get_active_dataset(), type(None)):
+                messagebox.showwarning(title="Warning", message="Please load a training dataset in the CSV viewer")
+            else:
+                user_selection_model_parameter("knn")
+                get_user_input_for_single_classification()
+                tweet_a_categoriser = single_input_classification.get()
+                cleaner = Csv_Cleaner(is_single_input=True, single_input=tweet_a_categoriser)
+                tweet_a_categoriser = cleaner.clean()
+                knn_model = KNN(active_dataset ,number_of_k_value.get(), distance_value.get(), vote_value.get())
+                
+                classification = knn_model.classification(" ".join((tweet_a_categoriser)))
+                messagebox.showinfo(title="Info", message=f"Your input has been classsified as : {classification}")
+
+
+        if selection == 'naive_classification':
+            messagebox.showinfo(title="Info", message="Not implemented yet -_-")
 
 
     def test_model():
@@ -222,7 +263,6 @@ def main():
                     tweet_a_categoriser = " ".join(literal_eval(tweet_token))
                     classifications.append(knn_model.classification(tweet_a_categoriser))
                 df_test["model_class"] = classifications
-
                 set_active_dataset(df_test)
                 f = filedialog.asksaveasfile(mode='w', defaultextension=".csv")
                 if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
@@ -357,10 +397,12 @@ def main():
 
     train = ctk.CTkButton(buttonFrame, text="Train", command=train_model)
     train.grid(column=0, row=0, ipadx=10, ipady=10)
-    test = ctk.CTkButton(buttonFrame, text="Test", command=test_model)
+    test = ctk.CTkButton(buttonFrame, text="Test on dataset", command=test_model)
     test.grid(column=1, row=0, ipadx=10, ipady=10)
+    test_single_sentence = ctk.CTkButton(buttonFrame, text="Test on single input", command=test_model_single_input)
+    test_single_sentence.grid(column=2, row=0, ipadx=10, ipady=10)
     stats = ctk.CTkButton(buttonFrame, text="Stats", command=show_model_stats)
-    stats.grid(column=2, row=0, ipadx=10, ipady=10)
+    stats.grid(column=3, row=0, ipadx=10, ipady=10)
 
 
     paned_window.add(middle_frame)
