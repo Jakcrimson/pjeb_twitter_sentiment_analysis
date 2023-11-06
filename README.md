@@ -85,5 +85,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-Developed with ❤️ by the Machine Learning enthusiasts at the University of Lille, France. 🚀📊
+Developed with ❤️ by Pierre LAGUE and Paul-Henri ICHER at the University of Lille, France. 🚀📊
 (Credits to Sebastian Safari (github : ssebs) for part of the CSV_editor tool.)
