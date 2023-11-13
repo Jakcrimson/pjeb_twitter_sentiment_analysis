@@ -6,27 +6,29 @@ import tkinter as tk
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter import font
-
-
+import customtkinter as ctk
+ctk.set_appearance_mode("dark") 
+  
+ctk.set_default_color_theme("blue") 
 
 class Metrics(Frame):
 
     def __init__(self, classified_dataset, parent, model):
 
         self.classified_dataset = classified_dataset
-        new= tk.Toplevel(parent)
+        new= ctk.CTkToplevel(master=parent)
         new.geometry("400x500")
         new.title("Metrics")
-
-        tk.Label(new, text=model, font=('Helvetica 18 bold'))
         
-        tk.Label(new, text="Accuracy", font=('Helvetica 12 bold')).pack(pady=30)
-        tk.Label(new, text=self.get_accuracy(), font=('Helvetica 11 bold')).pack(pady=30, padx=10)
+        my_font = ctk.CTkFont(family="Helvetica", size=20, weight="bold")
+        ctk.CTkLabel(new, text=model, font=my_font)
+        ctk.CTkLabel(new, text="Accuracy", font=my_font).pack(pady=30)
+        ctk.CTkLabel(new, text=self.get_accuracy(), font=my_font).pack(pady=30, padx=10)
         
-        tk.Label(new,text="Error Rate", font=('Helvetica 12 bold')).pack(pady=30)
-        tk.Label(new, text=self.get_error_rate(), font=('Helvetica 11 bold')).pack(pady=40, padx=10)
+        ctk.CTkLabel(new,text="Error Rate", font=my_font).pack(pady=30)
+        ctk.CTkLabel(new, text=self.get_error_rate(), font=my_font).pack(pady=40, padx=10)
             
-        tk.Button(new, text="Exit", command=new.destroy).pack(pady=45)  
+        ctk.CTkButton(new, text="Exit", command=new.destroy).pack(pady=45)  
         parent.wait_window(new)
 
     

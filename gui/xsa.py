@@ -28,6 +28,16 @@ from algorithms.naive_classification import NaiveClassification
 from algorithms.metrics import Metrics
 from algorithms.knn import KNN 
 
+####
+# useful dictionnary
+classes_labels = {
+    4 : 'positive',
+    2 : 'neutral',
+    0 : 'negative'
+}
+###
+
+
 ############################################
 ### splash window
 splash_root = tk.Tk()
@@ -223,16 +233,15 @@ def main():
                 get_user_input_for_single_classification()
                 tweet_a_categoriser = single_input_classification.get()
                 cleaner = Csv_Cleaner(is_single_input=True, single_input=tweet_a_categoriser)
-                tweet_a_categoriser = cleaner.clean()
+                tweet_a_categoriser_clean = cleaner.clean()
                 knn_model = KNN(active_dataset ,number_of_k_value.get(), distance_value.get(), vote_value.get())
                 
-                classification = knn_model.classification(" ".join((tweet_a_categoriser)))
-                messagebox.showinfo(title="Info", message=f"Your input has been classsified as : {classification}")
+                classification = knn_model.classification(" ".join((tweet_a_categoriser_clean)))
+                messagebox.showinfo(title="Info", message=f"Your input '{tweet_a_categoriser}' has been classsified as : {classes_labels[int(classification)]}")
 
 
         if selection == 'naive_classification':
             messagebox.showinfo(title="Info", message="Not implemented yet -_-")
-
 
     def test_model():
         """tests the model based on the parameters that were input by the user.
@@ -300,6 +309,7 @@ def main():
             messagebox.showinfo(title="Information", message="Not implemented yet")
         if selection=="naive_classification":
             metrics = Metrics(active_dataset, parent=root, model=selection)
+
 
 
         

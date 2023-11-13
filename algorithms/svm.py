@@ -1,1 +1,0 @@
-#to do scratch implementation of SVM
