@@ -129,45 +129,44 @@ def main():
         Returns:
             None: if the user decides to cancel the operation
         """
-        #try:
-            clean_data = ask("Would you like to clean your data ?")
-            file_name = ""
-            df = pd.read_csv(file_path)
-            set_active_dataset(df)
+        clean_data = ask("Would you like to clean your data ?")
+        file_name = ""
+        df = pd.read_csv(file_path)
+        set_active_dataset(df)
 
-            if clean_data:
-                    df = pd.read_csv(file_path)
-                    cleaner = Csv_Cleaner(file_path)
-                    df = cleaner.clean()
+        if clean_data:
+                df = pd.read_csv(file_path)
+                cleaner = Csv_Cleaner(file_path)
+                df = cleaner.clean()
 
-                    set_active_dataset(df)
+                set_active_dataset(df)
 
-                    f = filedialog.asksaveasfile(mode='w', defaultextension=".csv")
-                    if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
-                        return
-                    f.write(active_dataset.to_csv(index=False, sep=",", header=True, quotechar='"', lineterminator="\r"))
-                    file_name = f.name
-                    f.close()
+                f = filedialog.asksaveasfile(mode='w', defaultextension=".csv")
+                if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
+                    return
+                f.write(active_dataset.to_csv(index=False, sep=",", header=True, quotechar='"', lineterminator="\r"))
+                file_name = f.name
+                f.close()
+        else:
+            file_name = file_path
+
+        header_prsent = ask("Does the file have a header ?")
+        with open(file_name, 'r', newline='') as file:
+            csv_reader = csv.reader(file, quoting=csv.QUOTE_ALL)
+            if header_prsent:
+                header = next(csv_reader)
             else:
-                file_name = file_path
+                header=[f"col_{x}" for x in range(count(df.columns))]
 
-            header_prsent = ask("Does the file have a header ?")
-            with open(file_name, 'r', newline='') as file:
-                csv_reader = csv.reader(file, quoting=csv.QUOTE_ALL)
-                if header_prsent:
-                    header = next(csv_reader)
-                else:
-                    header=[f"col_{x}" for x in range(count(df.columns))]
+            tree.delete(*tree.get_children())  # Clear the current data
 
-                tree.delete(*tree.get_children())  # Clear the current data
+            tree["columns"] = header
+            for col in header:
+                tree.heading(col, text=col)
+                tree.column(col, width=300, stretch=True)
 
-                tree["columns"] = header
-                for col in header:
-                    tree.heading(col, text=col)
-                    tree.column(col, width=300, stretch=True)
-
-                for row in csv_reader:
-                    tree.insert('', "end", values=row)
+            for row in csv_reader:
+                tree.insert('', "end", values=row)
 
 
     def user_selection_model_parameter(model):
@@ -337,11 +336,11 @@ def main():
         """
         selection = algo_var.get()
         if selection=="knn":
-            metrics = Metrics(active_dataset, parent=root, model=selection)
+            Metrics(active_dataset, parent=root, model=selection)
         if selection=="naive_bayes":
             messagebox.showinfo(title="Information", message="Not implemented yet")
         if selection=="naive_classification":
-            metrics = Metrics(active_dataset, parent=root, model=selection)
+            Metrics(active_dataset, parent=root, model=selection)
 
 
 
