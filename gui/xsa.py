@@ -38,17 +38,14 @@ classes_labels = {
 ###
 
 
-############################################
-### splash window
+"""
+Initializes the splash window to display the XSA logo
+"""
 splash_root = tk.Tk()
 splash_root.title('XSA - GUI')
- 
-# Adjust size
 splash_root.geometry("500x500")
- 
 path = Path(__file__).parent / "."
 logo_path = (path / "./assets/black_logo.png").resolve()
-
 photo = tk.PhotoImage(file=logo_path)
 image_label = ttk.Label(
     splash_root,
@@ -57,34 +54,61 @@ image_label = ttk.Label(
     compound='top'
 )
 image_label.pack()
-############################################
 
-
+####################
+# GLOBAL VARIABLES #
+####################
 single_input_classification = None
 number_of_k_value = None
 distance_value = None
 active_dataset = None
-############################################
+
+
 def main(): 
+    """
+    Defining all the necessary functions
+    """
+
 
     def set_active_dataset(df):
+        """Sets the active dataset global variable to the dataset given in parameter.
+        Tha active dataset is the one opened in the CSV Viewer
+
+        Args:
+            df (pd.dataframe): the dataset opened in the csv viewer
+        """
         global active_dataset
         active_dataset = df
 
     def get_active_dataset():
+        """Retrieves the value stored in the active dataset global variables
+
+        Returns:
+            pd.dataframe: the active dataset
+        """
         global active_dataset
         return active_dataset
 
-    ############################################
-    # OPENS A CSV FILE
+
+
     def open_csv_file():
+        """Opens a filedialog asking for the user to choose a csv file, then call the display_csv_data function to display it on the csv viewer in the app.
+        """
         file_path = filedialog.askopenfilename(title="Open CSV File", filetypes=[("CSV files", "*.csv")])
         if file_path:
             display_csv_data(file_path)
 
-    ############################################
-    # ASKS THE USER A YES NO QUESTION
+
+
     def ask(question):
+        """Asks a yes/no question to the user. Useful for basic input
+
+        Args:
+            question (str): the question asked to the user
+
+        Returns:
+            bool: litteraly yes or no 
+        """
         response = messagebox.askyesno("XSA - User input",
                           question,
                           icon ='question')
@@ -93,9 +117,18 @@ def main():
         else:           # If the answer was "No" response is False
             return False
 
-    ############################################
-    # DISPLAYS THE DATA FROM THE CSV ONTO THE TREEVIEW
+
     def display_csv_data(file_path):
+        """This function displays a csv in the csv viewer, the central panel in the application.
+        Upon opening, the function asks the user of he wants his data to be cleaned, then is the file has a header, if not, default header will be applied.
+    
+
+        Args:
+            file_path (str): path to the file that is to be displayed
+
+        Returns:
+            None: if the user decides to cancel the operation
+        """
         #try:
             clean_data = ask("Would you like to clean your data ?")
             file_name = ""
@@ -124,7 +157,7 @@ def main():
                 if header_prsent:
                     header = next(csv_reader)
                 else:
-                    header=["target", "ids", "date", "flag", "user", "text"]
+                    header=[f"col_{x}" for x in range(count(df.columns))]
 
                 tree.delete(*tree.get_children())  # Clear the current data
 
@@ -135,12 +168,6 @@ def main():
 
                 for row in csv_reader:
                     tree.insert('', "end", values=row)
-
-            #status_label.config(text=f"CSV file loaded: {file_path}")
-
-        
-        #except Exception as e:
-            #status_label.setvar(text=f"Error: {str(e)}")
 
 
     def user_selection_model_parameter(model):
@@ -185,7 +212,7 @@ def main():
 
 
     def train_model():
-        """trains the model based on the parameters that were input by the user.
+        """Trains the model based on the parameters that were prompted by the user.
         """
         selection = algo_var.get()
         if selection == 'naive_bayes':
@@ -202,6 +229,8 @@ def main():
 
 
     def get_user_input_for_single_classification():
+        """Asks the user for a single input to be classified. Mostly used as a demo example to avoid spending too much time loading the datasets.
+        """
         global single_input_classification
         single_input_classification = tk.StringVar()
 
@@ -220,6 +249,8 @@ def main():
 
 
     def test_model_single_input():
+        """Tests the model if the mode is single_input_classification
+        """
         selection = algo_var.get()
         
         if selection == 'naive_bayes':
@@ -302,6 +333,8 @@ def main():
 
 
     def show_model_stats():
+        """Displays metrics computed on the active dataset
+        """
         selection = algo_var.get()
         if selection=="knn":
             metrics = Metrics(active_dataset, parent=root, model=selection)
@@ -314,13 +347,7 @@ def main():
 
         
 
-    ############################################
-
-
-    ############################################
-    # FRAME BUILDING
-    ############################################
-
+    # ENTRY POINT OF THE GUI IMPLEMENTATION
     splash_root.destroy()
     root = ctk.CTk()
     root.geometry("1000x600")
@@ -332,9 +359,10 @@ def main():
     upper_frame = ctk.CTkFrame(paned_window, width=600, height=600,  border_width=0)
     middle_frame = ctk.CTkFrame(paned_window, width=600, height=600,  border_width=0)
 
-    ###########"
-    # STYLES ###"
-    ###########"
+
+    ###########
+    # STYLES #
+    ###########
     # Create style Object    
     style = ttk.Style(upper_frame)
     # set ttk theme to "clam" which support the fieldbackground option
@@ -344,11 +372,9 @@ def main():
     style.configure("TPanedwindow", background="black")
 
 
-
-
-    ############"
-    # FRAMES ###"
-    ############"
+    ############
+    # FRAMES ###
+    ############
     #upper frame    
     tree = ttk.Treeview(upper_frame, show="headings")
     tree.pack(padx=20, pady=20, fill="both", expand=True)

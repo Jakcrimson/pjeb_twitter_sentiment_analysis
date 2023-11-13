@@ -4,8 +4,19 @@ from algorithms.pytextdist.vector_similarity import * #distances calculées en v
 import pandas as pd
 
 class KNN():
-    
+    """
+    This class implements a K Nearrest Neighbour classifier from scratch.
+    We're using an external repository to compute the distances, credit was made in the readme and the report.
+    """
     def __init__(self, data, nombre_voisins, distance, vote):
+        """Initializes the class with various parameters
+
+        Args:
+            data (pr.dataframe): the data, 
+            nombre_voisins (int): the number of neighbours to consider in the algorithm
+            distance (str): the type of distance in the list of distances ["naive", "levenshtein", "lcs", "damerau_levenshtein", "hamming", "jaro", "cosine", "jaccard", "sorensen_dice", "qgram_dice"]
+            vote (str): the type of vote in the list of votes ["majoritaire", "pondéré"]
+        """
         self.data = data
         self.nombre_voisins = nombre_voisins
         self.distance = distance
@@ -13,6 +24,14 @@ class KNN():
         
         
     def liste_distance(self, tweet_a_categoriser):
+        """computes the distance for a given tweet
+
+        Args:
+            tweet_a_categoriser (str): the tweet on which distances will be computed with regards to other tweets in the dataset
+
+        Returns:
+            the distance specified in the __init__ function
+        """
         distances = []
         if self.distance == "naïve":
             mots_tweet = tweet_a_categoriser.split()
@@ -106,6 +125,14 @@ class KNN():
         
     
     def classification(self, tweet_a_categoriser):
+        """Classify the tweet based on it's distance, the vote and number of neighbours
+
+        Args:
+            tweet_a_categoriser (str): the tweet to be classified
+
+        Returns:
+            label (int): the classification label
+        """
         label_et_distance_proches_voisins_croissant = [(x,y) for (x,y) in zip(self.data["target"],self.liste_distance(tweet_a_categoriser))]
         label_et_distance_proches_voisins_croissant.sort(key=lambda x: x[1])
         votes = {}

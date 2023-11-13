@@ -12,8 +12,18 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue") 
 
 class Metrics(Frame):
-
+    """
+    This class is used to get a baseline on model performances, during the project we will only use the error rate and the accuracy.
+    if time allows it, further metrics will be implemented, such ac f1-score , OA (overall accuracy) and AUC (area under ROC curve).
+    """
     def __init__(self, classified_dataset, parent, model):
+        """initializes the window that will display the metrics
+
+        Args:
+            classified_dataset (pd.dataframe): a dataset containing a column 'target' (label) and a column 'model_class' (prediction)
+            parent (tkinter frame): the main app
+            model (str): name of the model that classified the data
+        """
 
         self.classified_dataset = classified_dataset
         new= ctk.CTkToplevel(master=parent)
@@ -60,6 +70,11 @@ class Metrics(Frame):
 
 
     def get_error_rate(self):
+        """Function to compute the error rate.
+
+        Returns:
+            float: the error rate
+        """
 
         # Intitializing variable to store count of correctly predicted classes
         y_true = self.classified_dataset["target"].values
