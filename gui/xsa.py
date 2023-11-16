@@ -64,7 +64,6 @@ number_of_k_value = None
 distance_value = None
 active_dataset = None
 
-
 def main(): 
     """
     Defining all the necessary functions
@@ -90,16 +89,12 @@ def main():
         global active_dataset
         return active_dataset
 
-
-
     def open_csv_file():
         """Opens a filedialog asking for the user to choose a csv file, then call the display_csv_data function to display it on the csv viewer in the app.
         """
         file_path = filedialog.askopenfilename(title="Open CSV File", filetypes=[("CSV files", "*.csv")])
         if file_path:
             display_csv_data(file_path)
-
-
 
     def ask(question):
         """Asks a yes/no question to the user. Useful for basic input
@@ -117,7 +112,6 @@ def main():
             return True
         else:           # If the answer was "No" response is False
             return False
-
 
     def display_csv_data(file_path):
         """This function displays a csv in the csv viewer, the central panel in the application.
@@ -169,7 +163,6 @@ def main():
             for row in csv_reader:
                 tree.insert('', "end", values=row)
 
-
     def user_selection_model_parameter(model):
         """Allows the user to select the hyperparameters of his model before training the model.
 
@@ -203,10 +196,12 @@ def main():
             ctk.CTkLabel(new, text="Vote", font=my_font).pack(pady=20)
             votes = ["majoritaire", "pondéré"]
             ctk.CTkComboBox(new, variable=vote_value, values=votes).pack(pady=20, padx=10)
+
+        if model == "naive_bayes":
+            pass
                 
         ctk.CTkButton(new, text="Validate Parameters and exit", command=new.destroy).pack(pady=30)   
         root.wait_window(new)
-
 
     def train_model():
         """Trains the model based on the parameters that were prompted by the user.
@@ -222,7 +217,6 @@ def main():
 
         elif selection == 'naive_classification':
             messagebox.showinfo(title="Info", message="Naïve Classification doesn't need training")
-
 
     def get_user_input_for_single_classification():
         """Asks the user for a single input to be classified. Mostly used as a demo example to avoid spending too much time loading the datasets.
@@ -256,9 +250,9 @@ def main():
             tweet_a_categoriser = single_input_classification.get()
             cleaner = Csv_Cleaner(is_single_input=True, single_input=tweet_a_categoriser)
             tweet_a_categoriser_clean = cleaner.clean()
-            nb_model = NaiveBayes(active_dataset)
+            nb_model = naive_bayes(active_dataset)
             
-            classification = nb_model.classification(" ".join((tweet_a_categoriser_clean)), single_input_classification=True)
+            classification = nb_model.classification(" ".join((tweet_a_categoriser_clean)), single_input_classsification=True)
             messagebox.showinfo(title="Info", message=f"Your input '{tweet_a_categoriser}' has been classsified as : {classes_labels[int(classification)]}")
 
         if selection == 'knn':
@@ -293,7 +287,7 @@ def main():
                 messagebox.showinfo(title="Info Naive Bayes", message="Load your testing data")
                 open_csv_file()
                 df_test = copy.deepcopy(active_dataset)
-                nb_model = NaiveBayes(df_train)
+                nb_model = naive_bayes(df_train)
                 classifications = []
                 for tweet_token in df_test["Tweet_Tokenized"]:
                     tweet_a_categoriser = " ".join(literal_eval(tweet_token))
@@ -357,8 +351,6 @@ def main():
                 f.close()
                 display_csv_data(file_name)
                 
-
-
     def show_model_stats():
         """Displays metrics computed on the active dataset
         """
