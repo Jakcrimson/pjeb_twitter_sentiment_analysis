@@ -27,6 +27,7 @@ from csv_editor import Application
 from algorithms.naive_classification import NaiveClassification
 from algorithms.metrics import Metrics
 from algorithms.knn import KNN 
+from algorithms.naive_bayes import NaiveBayes
 
 ####
 # useful dictionnary
@@ -202,9 +203,6 @@ def main():
             ctk.CTkLabel(new, text="Vote", font=my_font).pack(pady=20)
             votes = ["majoritaire", "pondéré"]
             ctk.CTkComboBox(new, variable=vote_value, values=votes).pack(pady=20, padx=10)
-
-        if model == "naive_bayes":
-            pass
                 
         ctk.CTkButton(new, text="Validate Parameters and exit", command=new.destroy).pack(pady=30)   
         root.wait_window(new)
@@ -215,8 +213,7 @@ def main():
         """
         selection = algo_var.get()
         if selection == 'naive_bayes':
-            messagebox.showinfo(title="Info", message="Not implemented yet -_-")
-
+            messagebox.showinfo(title="Info", message="Naïve Classification doesn't need training")
         elif selection == 'knn':
             if isinstance(get_active_dataset(), type(None)):
                 messagebox.showwarning(title="Warning", message="Please load a training dataset in the CSV viewer")
@@ -253,7 +250,16 @@ def main():
         selection = algo_var.get()
         
         if selection == 'naive_bayes':
-            messagebox.showinfo(title="Info", message="Not implemented yet -_-")    
+            if isinstance(get_active_dataset(), type(None)):
+                messagebox.showwarning(title="Warning", message="Please load a training dataset in the CSV viewer") 
+            get_user_input_for_single_classification()
+            tweet_a_categoriser = single_input_classification.get()
+            cleaner = Csv_Cleaner(is_single_input=True, single_input=tweet_a_categoriser)
+            tweet_a_categoriser_clean = cleaner.clean()
+            nb_model = NaiveBayes(active_dataset)
+            
+            classification = nb_model.classification(" ".join((tweet_a_categoriser_clean)), single_input_classification=True)
+            messagebox.showinfo(title="Info", message=f"Your input '{tweet_a_categoriser}' has been classsified as : {classes_labels[int(classification)]}")
 
         if selection == 'knn':
             if isinstance(get_active_dataset(), type(None)):
@@ -279,7 +285,29 @@ def main():
         selection = algo_var.get()
         
         if selection == 'naive_bayes':
-            messagebox.showinfo(title="Info", message="Not implemented yet -_-")
+            if isinstance(get_active_dataset(), type(None)):
+                messagebox.showwarning(title="Warning", message="Please load a training dataset in the CSV viewer")
+            else:
+
+                df_train = copy.deepcopy(active_dataset)
+                messagebox.showinfo(title="Info Naive Bayes", message="Load your testing data")
+                open_csv_file()
+                df_test = copy.deepcopy(active_dataset)
+                nb_model = NaiveBayes(df_train)
+                classifications = []
+                for tweet_token in df_test["Tweet_Tokenized"]:
+                    tweet_a_categoriser = " ".join(literal_eval(tweet_token))
+                    classifications.append(nb_model.classification(tweet_a_categoriser))
+                df_test["model_class"] = classifications
+                set_active_dataset(df_test)
+                f = filedialog.asksaveasfile(mode='w', defaultextension=".csv")
+                if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
+                    return
+
+                f.write(active_dataset.to_csv(index=False, sep=",", header=True, quotechar='"', lineterminator="\r"))
+                file_name = f.name
+                f.close()
+                display_csv_data(file_name)
 
         elif selection == 'knn':
             if isinstance(get_active_dataset(), type(None)):
