@@ -26,21 +26,30 @@ class Metrics(Frame):
         """
 
         self.classified_dataset = classified_dataset
-        new= ctk.CTkToplevel(master=parent)
-        new.geometry("400x500")
+        self.parent = parent
+        self.model = model
+
+    def display(self, mean_cv_score=None, train=True):
+        new= ctk.CTkToplevel(master=self.parent)
+        new.geometry("400x600")
         new.title("Metrics")
         
         my_font = ctk.CTkFont(family="Helvetica", size=20, weight="bold")
-        ctk.CTkLabel(new, text=model, font=my_font)
-        ctk.CTkLabel(new, text="Accuracy", font=my_font).pack(pady=30)
-        ctk.CTkLabel(new, text=self.get_accuracy(), font=my_font).pack(pady=30, padx=10)
-        
-        ctk.CTkLabel(new,text="Error Rate", font=my_font).pack(pady=30)
-        ctk.CTkLabel(new, text=self.get_error_rate(), font=my_font).pack(pady=40, padx=10)
-            
-        ctk.CTkButton(new, text="Exit", command=new.destroy).pack(pady=45)  
-        parent.wait_window(new)
 
+        if train==True:
+            ctk.CTkLabel(new, text = "Mean CV Accuracy", font=my_font).pack(pady=30)
+            ctk.CTkLabel(new, text=f"{mean_cv_score}").pack(pady=20, padx=10)
+        else:
+            ctk.CTkLabel(new, text=self.model, font=my_font)
+            ctk.CTkLabel(new, text="Accuracy", font=my_font).pack(pady=30)
+            ctk.CTkLabel(new, text=self.get_accuracy()).pack(pady=20, padx=10)
+            
+            ctk.CTkLabel(new,text="Error Rate", font=my_font).pack(pady=30)
+            ctk.CTkLabel(new, text=self.get_error_rate()).pack(pady=20, padx=10)
+
+            
+        ctk.CTkButton(new, text="Exit", command=new.destroy).pack(pady=10)  
+        self.wait_window(new)
     
 
     def get_accuracy(self):
@@ -92,7 +101,38 @@ class Metrics(Frame):
         #returns accuracy
         return 1-(correct_predictions / len(y_true))
 
-        
+
+    def get_cross_validation_dataset(self):
+        data = self.classified_dataset
+        k = 10
+        fold_size = len(data) // k
+        indices = np.arange(len(data))
+        folds = []
+        for i in range(k):
+            test_indices = indices[i * fold_size: (i + 1) * fold_size]
+            train_indices = np.concatenate([indices[:i * fold_size], indices[(i + 1) * fold_size:]])
+            folds.append((train_indices, test_indices))
+        return folds
+    
+
+    def get_cross_validation_score(self):
+        # Initialize a list to store the evaluation scores
+        fold_indices = self.get_cross_validation_dataset()
+        scores = []
+        for train_indices, test_indices in fold_indices:
+            self.classified_dataset = self.classified_dataset[train_indices]
+            
+            # Calculate the accuracy score for this fold
+            fold_score = self.get_accuracy()
+            
+            # Append the fold score to the list of scores
+            scores.append(fold_score)
+
+        # Calculate the mean accuracy across all folds
+        mean_accuracy = np.mean(scores)
+        return [scores, mean_accuracy]
+
+
 
     # Functions to compute True Positives, True Negatives, False Positives and False Negatives
 

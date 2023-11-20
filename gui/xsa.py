@@ -10,9 +10,10 @@ ctk.set_default_color_theme("blue")
 from numpy import number
 sys.path.insert(0, os.path.dirname("algorithms"))
 
+import random
 import copy
 import tkinter as tk
-from tkinter import PanedWindow, ttk
+from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
 import csv
@@ -21,6 +22,7 @@ import pandas as pd
 from tkinter import Menu
 from tkinter import font
 from tkinter import filedialog
+import numpy as np
 
 from csv_cleaner import Csv_Cleaner
 from csv_editor import Application
@@ -203,77 +205,7 @@ def main():
         ctk.CTkButton(new, text="Validate Parameters and exit", command=new.destroy).pack(pady=30)   
         root.wait_window(new)
 
-    def train_model():
-        """Trains the model based on the parameters that were prompted by the user.
-        """
-        selection = algo_var.get()
-        if selection == 'naive_bayes':
-            messagebox.showinfo(title="Info", message="Naïve Classification doesn't need training")
-        elif selection == 'knn':
-            if isinstance(get_active_dataset(), type(None)):
-                messagebox.showwarning(title="Warning", message="Please load a training dataset in the CSV viewer")
-            else:
-                messagebox.showinfo(title="Info", message="KNN Classification doesn't technically need training")
-
-        elif selection == 'naive_classification':
-            messagebox.showinfo(title="Info", message="Naïve Classification doesn't need training")
-
-    def get_user_input_for_single_classification():
-        """Asks the user for a single input to be classified. Mostly used as a demo example to avoid spending too much time loading the datasets.
-        """
-        global single_input_classification
-        single_input_classification = tk.StringVar()
-
-        new= ctk.CTkToplevel(master=root)
-        new.geometry("300x300")
-        new.title("User Input")
-        
-        my_font = ctk.CTkFont(family="Helvetica", size=20, weight="bold")
-
-
-        ctk.CTkLabel(new, text="Tweet Input", font=my_font).pack(pady=20)
-        ctk.CTkEntry(new, width=200,textvariable=single_input_classification).pack(pady=20, padx=10)
-
-        ctk.CTkButton(new, text="Validate input and exit", command=new.destroy).pack(pady=30)   
-        root.wait_window(new)
-
-
-    def test_model_single_input():
-        """Tests the model if the mode is single_input_classification
-        """
-        selection = algo_var.get()
-        
-        if selection == 'naive_bayes':
-            if isinstance(get_active_dataset(), type(None)):
-                messagebox.showwarning(title="Warning", message="Please load a training dataset in the CSV viewer") 
-            get_user_input_for_single_classification()
-            tweet_a_categoriser = single_input_classification.get()
-            cleaner = Csv_Cleaner(is_single_input=True, single_input=tweet_a_categoriser)
-            tweet_a_categoriser_clean = cleaner.clean()
-            nb_model = naive_bayes(active_dataset)
-            
-            classification = nb_model.classification(" ".join((tweet_a_categoriser_clean)), single_input_classsification=True)
-            messagebox.showinfo(title="Info", message=f"Your input '{tweet_a_categoriser}' has been classsified as : {classes_labels[int(classification)]}")
-
-        if selection == 'knn':
-            if isinstance(get_active_dataset(), type(None)):
-                messagebox.showwarning(title="Warning", message="Please load a training dataset in the CSV viewer")
-            else:
-                user_selection_model_parameter("knn")
-                get_user_input_for_single_classification()
-                tweet_a_categoriser = single_input_classification.get()
-                cleaner = Csv_Cleaner(is_single_input=True, single_input=tweet_a_categoriser)
-                tweet_a_categoriser_clean = cleaner.clean()
-                knn_model = KNN(active_dataset ,number_of_k_value.get(), distance_value.get(), vote_value.get())
-                
-                classification = knn_model.classification(" ".join((tweet_a_categoriser_clean)))
-                messagebox.showinfo(title="Info", message=f"Your input '{tweet_a_categoriser}' has been classsified as : {classes_labels[int(classification)]}")
-
-
-        if selection == 'naive_classification':
-            messagebox.showinfo(title="Info", message="Not implemented yet -_-")
-
-    def test_model():
+    def test_model_dataset():
         """tests the model based on the parameters that were input by the user.
         """
         selection = algo_var.get()
@@ -350,17 +282,185 @@ def main():
                 file_name = f.name
                 f.close()
                 display_csv_data(file_name)
+
+    def get_user_input_for_single_classification():
+        """Asks the user for a single input to be classified. Mostly used as a demo example to avoid spending too much time loading the datasets.
+        """
+        global single_input_classification
+        single_input_classification = tk.StringVar()
+
+        new= ctk.CTkToplevel(master=root)
+        new.geometry("300x300")
+        new.title("User Input")
+        
+        my_font = ctk.CTkFont(family="Helvetica", size=20, weight="bold")
+
+
+        ctk.CTkLabel(new, text="Tweet Input", font=my_font).pack(pady=20)
+        ctk.CTkEntry(new, width=200,textvariable=single_input_classification).pack(pady=20, padx=10)
+
+        ctk.CTkButton(new, text="Validate input and exit", command=new.destroy).pack(pady=30)   
+        root.wait_window(new)
+
+    def test_model_single_input():
+        """Tests the model if the mode is single_input_classification
+        """
+        selection = algo_var.get()
+        
+        if selection == 'naive_bayes':
+            if isinstance(get_active_dataset(), type(None)):
+                messagebox.showwarning(title="Warning", message="Please load a training dataset in the CSV viewer") 
+            get_user_input_for_single_classification()
+            tweet_a_categoriser = single_input_classification.get()
+            cleaner = Csv_Cleaner(is_single_input=True, single_input=tweet_a_categoriser)
+            tweet_a_categoriser_clean = cleaner.clean()
+            nb_model = naive_bayes(active_dataset)
+            
+            classification = nb_model.classification(" ".join((tweet_a_categoriser_clean)), single_input_classsification=True)
+            messagebox.showinfo(title="Info", message=f"Your input '{tweet_a_categoriser}' has been classsified as : {classes_labels[int(classification)]}")
+
+        if selection == 'knn':
+            if isinstance(get_active_dataset(), type(None)):
+                messagebox.showwarning(title="Warning", message="Please load a training dataset in the CSV viewer")
+            else:
+                user_selection_model_parameter("knn")
+                get_user_input_for_single_classification()
+                tweet_a_categoriser = single_input_classification.get()
+                cleaner = Csv_Cleaner(is_single_input=True, single_input=tweet_a_categoriser)
+                tweet_a_categoriser_clean = cleaner.clean()
+                knn_model = KNN(active_dataset ,number_of_k_value.get(), distance_value.get(), vote_value.get())
                 
+                classification = knn_model.classification(" ".join((tweet_a_categoriser_clean)))
+                messagebox.showinfo(title="Info", message=f"Your input '{tweet_a_categoriser}' has been classsified as : {classes_labels[int(classification)]}")
+
+
+        if selection == 'naive_classification':
+            messagebox.showinfo(title="Info", message="Not implemented yet -_-")
+        
+    def get_k_folds(data, k=5, random_seed=None):
+
+        if random_seed is not None:
+            random.seed(random_seed)
+
+        # Randomly shuffle the indices of the DataFrame
+        indices = np.random.permutation(data.index)
+
+        # Calculate the size of each fold
+        fold_size = len(indices) // k
+        remainder = len(indices) % k  # Number of remaining samples
+
+        folds = []
+
+        start_idx = 0
+
+        for i in range(k):
+            # Calculate the end index for the current fold
+            end_idx = start_idx + fold_size + (1 if i < remainder else 0)
+
+            # Split the indices into training and validation sets
+            validation_indices = indices[start_idx:end_idx]
+            training_indices = np.concatenate([indices[:start_idx], indices[end_idx:]])
+
+            # Extract the corresponding rows from the DataFrame
+            validation_set = data.loc[validation_indices].reset_index(drop=True)
+            training_set = data.loc[training_indices].reset_index(drop=True)
+
+            folds.append((training_set, validation_set))
+
+            # Update the start index for the next fold
+            start_idx = end_idx
+
+        return folds
+
+    def train_test_split(data, test_size=0.2, random_seed=None):
+
+        if random_seed is not None:
+            random.seed(random_seed)
+
+        test_size = int(len(data) * test_size)
+
+        shuffled_data = random.sample(data, len(data))
+
+        test_set = shuffled_data[:test_size]
+        train_set = shuffled_data[test_size:]
+
+        return train_set, test_set
+
+    def train_model():
+        """tests the model based on the parameters that were input by the user.
+        """
+        selection = algo_var.get()
+        
+        if selection == 'naive_bayes':
+            if isinstance(get_active_dataset(), type(None)):
+                messagebox.showwarning(title="Warning", message="Please load a training dataset in the CSV viewer")
+            else:
+
+                classifications_validation = []
+                df_train = copy.deepcopy(active_dataset)
+
+                ## cross validation
+                cross_val_scores = []
+                folds = get_k_folds(df_train, k=10)
+                for i, (train_set, val_set) in enumerate(folds):
+                    nb_model = NaiveBayes(train_set) # model fitted on the training set
+                    for tweet_token in val_set["Tweet_Tokenized"]:
+                        tweet_a_categoriser = " ".join(literal_eval(tweet_token)) # model evaluated on the validation set
+                        classifications_validation.append(nb_model.classification(tweet_a_categoriser))    
+                    val_set["model_class"] = classifications_validation
+                    classifications_validation = []
+                    metric = Metrics(val_set, root, algo_var.get())
+                    cross_val_scores.append(metric.get_accuracy())
+
+                metric.display(np.mean(cross_val_scores))                
+
+        elif selection == 'knn':
+            if isinstance(get_active_dataset(), type(None)):
+                messagebox.showwarning(title="Warning", message="Please load a training dataset in the CSV viewer")
+            else:
+                classifications_validation = []
+                df_train = copy.deepcopy(active_dataset)
+
+                ## cross validation
+                cross_val_scores = []
+                user_selection_model_parameter("knn")
+                folds = get_k_folds(df_train, k=10)
+                for i, (train_set, val_set) in enumerate(folds):
+                    knn_model = KNN(df_train ,number_of_k_value.get(), distance_value.get(), vote_value.get())
+                    for tweet_token in val_set["Tweet_Tokenized"]:
+                        tweet_a_categoriser = " ".join(literal_eval(tweet_token)) # model evaluated on the validation set
+                        classifications_validation.append(knn_model.classification(tweet_a_categoriser))    
+                    val_set["model_class"] = classifications_validation
+                    classifications_validation = []
+                    metric = Metrics(val_set, root, algo_var.get())
+                    cross_val_scores.append(metric.get_accuracy())
+
+                metric.display(np.mean(cross_val_scores)) 
+            
+
+        elif selection == 'naive_classification':
+            if isinstance(get_active_dataset(), type(None)):
+                messagebox.showwarning(title="Warning", message="Please load a dataset in the CSV viewer")
+            else: 
+                nc = NaiveClassification(active_dataset)
+                classified_df = nc.get_classified()
+                set_active_dataset(classified_df)
+                metric = Metrics(val_set, root, algo_var.get())
+                metric.display(train=False)                  
+
     def show_model_stats():
         """Displays metrics computed on the active dataset
         """
         selection = algo_var.get()
         if selection=="knn":
-            Metrics(active_dataset, parent=root, model=selection)
+            metrics = Metrics(active_dataset, parent=root, model=selection)
+            metrics.display(train=False)
         if selection=="naive_bayes":
-            messagebox.showinfo(title="Information", message="Not implemented yet")
+            metrics = Metrics(active_dataset, parent=root, model=selection)
+            metrics.display(train=False)
         if selection=="naive_classification":
-            Metrics(active_dataset, parent=root, model=selection)
+            metrics = Metrics(active_dataset, parent=root, model=selection)
+            metrics.display(train=False)
 
 
 
@@ -450,9 +550,9 @@ def main():
     buttonFrame = ctk.CTkFrame(paned_window, width=600, height=600, border_width=0)
     buttonFrame.grid(column=0, row=0, padx=20, pady=20)
 
-    train = ctk.CTkButton(buttonFrame, text="Train", command=train_model)
+    train = ctk.CTkButton(buttonFrame, text="Train model", command=train_model)
     train.grid(column=0, row=0, ipadx=10, ipady=10)
-    test = ctk.CTkButton(buttonFrame, text="Test on dataset", command=test_model)
+    test = ctk.CTkButton(buttonFrame, text="Test model on dataset", command=test_model_dataset)
     test.grid(column=1, row=0, ipadx=10, ipady=10)
     test_single_sentence = ctk.CTkButton(buttonFrame, text="Test on single input", command=test_model_single_input)
     test_single_sentence.grid(column=2, row=0, ipadx=10, ipady=10)

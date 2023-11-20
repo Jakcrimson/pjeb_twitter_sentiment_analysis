@@ -20,6 +20,7 @@ class NaiveBayes():
         dictionnaire_4 = {}
         
         for i in range(0,self.data.shape[0]):
+            
             if self.data["target"][i] == 0:
                 for y in (" ".join(literal_eval(self.data["Tweet_Tokenized"][i]))).split(): #join et literal_eval pour transformer les series en liste de mot. Puis .split pour découper pour chaque mot
                     if y not in dictionnaire_0 : 
