@@ -14,7 +14,7 @@ class NaiveClassification():
             return 2 #overall neutral tweet
     """
 
-    def __init__(self, data) -> None:
+    def __init__(self, data, single_input_classification=False) -> None:
         pos = []
         with open(r'algorithms/corpus/utf8_pos.txt',encoding='utf8') as f:
             pos.append(f.readlines())
@@ -28,7 +28,7 @@ class NaiveClassification():
         self.neg = neg[0][0].split(",")
 
         self.data = data
-
+        self.sic = single_input_classification
     
     def count_positives(self):
         """this function counts the words that are in the tweet belonging to the positive corpus
@@ -36,21 +36,26 @@ class NaiveClassification():
         Returns:
             int : the number of positive words in the tweet 
         """
-        
         count = []
-        tokens = self.data['Tweet_no_stop'].tolist()
-        print(tokens)
-
-        for i in range(len(tokens)):
-            token_par_phrase = literal_eval(str(tokens[i]))
+        if self.sic:
             ct = 0
-            for token in token_par_phrase:
-                if ' '+token+' ' in self.pos:
-                    ct +=1
-            count.append(ct)
+            tokens = self.data
+            for i in range(len(tokens)):
+                if ' '+tokens[i] in self.pos:
+                    ct+=1
+            return ct
         
+        else:
+            tokens = self.data['Tweet_no_stop'].tolist()
 
-        return count
+            for i in range(len(tokens)):
+                token_par_phrase = literal_eval(str(tokens[i]))
+                ct = 0
+                for token in token_par_phrase:
+                    if ' '+token in self.pos:
+                        ct +=1
+                count.append(ct)
+            return count
 
 
             
@@ -61,18 +66,27 @@ class NaiveClassification():
             int : the number of negative words in the tweet 
         """
         count = []
-        tokens = self.data['Tweet_no_stop'].tolist()
-
-        for i in range(len(tokens)):
-            token_par_phrase = literal_eval(str(tokens[i]))
+        if self.sic:
             ct = 0
-            for token in token_par_phrase:
-                if ' '+token+' ' in self.neg:
-                    ct +=1
-            count.append(ct)
+            tokens = self.data
+            for i in range(len(tokens)):
+                if ' '+tokens[i] in self.neg:
+                    ct+=1
+            return ct
+        
+        else:
+            tokens = self.data['Tweet_no_stop'].tolist()
+
+            for i in range(len(tokens)):
+                token_par_phrase = literal_eval(str(tokens[i]))
+                ct = 0
+                for token in token_par_phrase:
+                    if ' '+token in self.neg:
+                        ct +=1
+                count.append(ct)
         
 
-        return count
+            return count
     
 
 
@@ -81,20 +95,32 @@ class NaiveClassification():
             the classification process is purely naive and based solely on the number of words.
         """
         count_pos = self.count_positives()
-        print(count_pos)
         count_neg = self.count_negatives()
+        
+        print(count_pos)
         print(count_neg)
-
-        naive_class = []
-        for p, n in zip(count_pos, count_neg):
-            if p > n:
-                naive_class.append(4)
-            elif n > p :
-                naive_class.append(0)
+        
+        
+        if self.sic:
+            if count_neg>count_pos:
+                return 0
+            elif count_pos>count_neg:
+                return 4
             else:
-                naive_class.append(2)
-
-        self.data["model_class"] = naive_class
+                return 2
+        
+        else:
+            naive_class = []
+            for p, n in zip(count_pos, count_neg):
+                if p > n:
+                    naive_class.append(4)
+                elif n > p :
+                    naive_class.append(0)
+                else:
+                    naive_class.append(2)
+        
+        
+            self.data["model_class"] = naive_class
 
 
     def get_classified(self):
@@ -104,7 +130,11 @@ class NaiveClassification():
             df : updated dataframe
         """
         self.classify()
-        return self.data
+        if self.sic:
+            return self.data[0]
+        else:
+            return self.data
+
     
 
         

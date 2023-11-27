@@ -65,6 +65,9 @@ single_input_classification = None
 number_of_k_value = None
 distance_value = None
 active_dataset = None
+variante1 = None
+variante2 = None
+variante3 = None
 
 def main(): 
     """
@@ -174,16 +177,22 @@ def main():
         global number_of_k_value
         global distance_value
         global vote_value
-
+        global variante1
+        global variante2
+        global variante3
 
         number_of_k_value = tk.StringVar()
         distance_value = tk.StringVar()
         vote_value = tk.StringVar()
 
+        variante1 = tk.StringVar()
+        variante2 = tk.StringVar()
+        variante3 = tk.StringVar()
+
         if model == 'knn':
             new= ctk.CTkToplevel(master=root)
             new.geometry("400x600")
-            new.title("User Input")
+            new.title("User Input KNN")
             
             my_font = ctk.CTkFont(family="Helvetica", size=20, weight="bold")
 
@@ -200,7 +209,23 @@ def main():
             ctk.CTkComboBox(new, variable=vote_value, values=votes).pack(pady=20, padx=10)
 
         if model == "naive_bayes":
-            pass
+            new= ctk.CTkToplevel(master=root)
+            new.geometry("400x600")
+            new.title("User Input NB")
+            
+            my_font = ctk.CTkFont(family="Helvetica", size=20, weight="bold")
+            
+            ctk.CTkLabel(new,text="Variante 1", font=my_font).pack(pady=20)
+            choices = ["fréquence", "présence"]
+            ctk.CTkComboBox(new, variable=variante1, values=choices).pack(pady=40, padx=10)
+
+            ctk.CTkLabel(new, text="Variante 2 (stopwords)", font=my_font).pack(pady=20)
+            votes = ["avec", "sans"]
+            ctk.CTkComboBox(new, variable=variante2, values=votes).pack(pady=20, padx=10)
+
+            ctk.CTkLabel(new, text="Variante 3", font=my_font).pack(pady=20)
+            votes = ["uni-gramme", "bi-gramme", "both"]
+            ctk.CTkComboBox(new, variable=variante3, values=votes).pack(pady=20, padx=10)
                 
         ctk.CTkButton(new, text="Validate Parameters and exit", command=new.destroy).pack(pady=30)   
         root.wait_window(new)
@@ -219,7 +244,8 @@ def main():
                 messagebox.showinfo(title="Info Naive Bayes", message="Load your testing data")
                 open_csv_file()
                 df_test = copy.deepcopy(active_dataset)
-                nb_model = naive_bayes(df_train)
+                user_selection_model_parameter("naive_bayes")
+                nb_model = NaiveBayes(df_train, variante1.get(), variante2.get(), variante3.get())
                 classifications = []
                 for tweet_token in df_test["Tweet_Tokenized"]:
                     tweet_a_categoriser = " ".join(literal_eval(tweet_token))
@@ -245,12 +271,8 @@ def main():
                 open_csv_file()
                 df_test = copy.deepcopy(active_dataset)
                 user_selection_model_parameter("knn")
-                print("DISTANCE VALUE ",distance_value.get())
-                print("N°K ",number_of_k_value.get())
-                print("VOTE VALUE ",vote_value.get())
                 knn_model = KNN(df_train ,number_of_k_value.get(), distance_value.get(), vote_value.get())
                 
-
                 classifications = []
                 for tweet_token in df_test["Tweet_Tokenized"]:
                     tweet_a_categoriser = " ".join(literal_eval(tweet_token))
@@ -309,15 +331,17 @@ def main():
         
         if selection == 'naive_bayes':
             if isinstance(get_active_dataset(), type(None)):
-                messagebox.showwarning(title="Warning", message="Please load a training dataset in the CSV viewer") 
-            get_user_input_for_single_classification()
-            tweet_a_categoriser = single_input_classification.get()
-            cleaner = Csv_Cleaner(is_single_input=True, single_input=tweet_a_categoriser)
-            tweet_a_categoriser_clean = cleaner.clean()
-            nb_model = naive_bayes(active_dataset)
-            
-            classification = nb_model.classification(" ".join((tweet_a_categoriser_clean)), single_input_classsification=True)
-            messagebox.showinfo(title="Info", message=f"Your input '{tweet_a_categoriser}' has been classsified as : {classes_labels[int(classification)]}")
+                messagebox.showwarning(title="Warning", message="Please load a training dataset in the CSV viewer")
+            else:
+                user_selection_model_parameter("naive_bayes")
+                get_user_input_for_single_classification()
+                tweet_a_categoriser = single_input_classification.get()
+                cleaner = Csv_Cleaner(is_single_input=True, single_input=tweet_a_categoriser)
+                tweet_a_categoriser_clean = cleaner.clean()
+                nb_model = NaiveBayes(active_dataset, variante1.get(), variante2.get(), variante3.get())
+                
+                classification = nb_model.classification(" ".join((tweet_a_categoriser_clean)), single_input_classification=True)
+                messagebox.showinfo(title="Info", message=f"Your input '{tweet_a_categoriser}' has been classsified as : {classes_labels[int(classification)]}")
 
         if selection == 'knn':
             if isinstance(get_active_dataset(), type(None)):
@@ -335,8 +359,15 @@ def main():
 
 
         if selection == 'naive_classification':
-            messagebox.showinfo(title="Info", message="Not implemented yet -_-")
-        
+            get_user_input_for_single_classification()
+            tweet_a_categoriser = single_input_classification.get()
+            cleaner = Csv_Cleaner(is_single_input=True, single_input=tweet_a_categoriser)
+            tweet_a_categoriser_clean = cleaner.clean()
+            nc = NaiveClassification(tweet_a_categoriser_clean, True)
+            classification = nc.classify()
+            print(classification)
+            messagebox.showinfo(title="Info", message=f"Your input '{tweet_a_categoriser}' has been classsified as : {classes_labels[int(classification)]}")
+
     def get_k_folds(data, k=5, random_seed=None):
 
         if random_seed is not None:
@@ -399,16 +430,19 @@ def main():
                 classifications_validation = []
                 df_train = copy.deepcopy(active_dataset)
 
+                ## selection du modele
+                user_selection_model_parameter(algo_var.get())
                 ## cross validation
                 cross_val_scores = []
                 folds = get_k_folds(df_train, k=10)
                 for i, (train_set, val_set) in enumerate(folds):
-                    nb_model = NaiveBayes(train_set) # model fitted on the training set
+                    nb_model = NaiveBayes(train_set, variante1.get(), variante2.get(), variante3.get()) # model fitted on the training set
                     for tweet_token in val_set["Tweet_Tokenized"]:
                         tweet_a_categoriser = " ".join(literal_eval(tweet_token)) # model evaluated on the validation set
                         classifications_validation.append(nb_model.classification(tweet_a_categoriser))    
                     val_set["model_class"] = classifications_validation
                     classifications_validation = []
+                    print(val_set["model_class"])
                     metric = Metrics(val_set, root, algo_var.get())
                     cross_val_scores.append(metric.get_accuracy())
 
@@ -445,7 +479,7 @@ def main():
                 nc = NaiveClassification(active_dataset)
                 classified_df = nc.get_classified()
                 set_active_dataset(classified_df)
-                metric = Metrics(val_set, root, algo_var.get())
+                metric = Metrics(classified_df, root, algo_var.get())
                 metric.display(train=False)                  
 
     def show_model_stats():
@@ -567,9 +601,7 @@ def main():
 
     root.mainloop()
 
-
 # Set Interval
-splash_root.after(0, main)
- 
+splash_root.after(1000, main)
 # Execute tkinter
 splash_root.mainloop()
