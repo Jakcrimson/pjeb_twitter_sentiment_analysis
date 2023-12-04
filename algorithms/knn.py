@@ -154,7 +154,7 @@ class KNN():
             for i in votes:
                 if votes[i] == vote_majoritaire:
                     label = i #on prend en compte la dernière étiquette égale au max 
-            return label
+            return int(label)
         
         if self.vote == "pondéré":
             for i in range(0,int(self.nombre_voisins)):
@@ -171,5 +171,5 @@ class KNN():
             for i in votes:
                 if votes[i] == vote_majoritaire:
                     label = i #on prend en compte la dernière étiquette égale au max 
-            return label
+            return int(label)
             

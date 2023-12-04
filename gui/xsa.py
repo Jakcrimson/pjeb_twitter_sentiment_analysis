@@ -434,15 +434,15 @@ def main():
                 user_selection_model_parameter(algo_var.get())
                 ## cross validation
                 cross_val_scores = []
-                folds = get_k_folds(df_train, k=10)
+                folds = get_k_folds(df_train, k=5)
                 for i, (train_set, val_set) in enumerate(folds):
+                    print("WOOOO",type(variante1.get()))
                     nb_model = NaiveBayes(train_set, variante1.get(), variante2.get(), variante3.get()) # model fitted on the training set
                     for tweet_token in val_set["Tweet_Tokenized"]:
                         tweet_a_categoriser = " ".join(literal_eval(tweet_token)) # model evaluated on the validation set
                         classifications_validation.append(nb_model.classification(tweet_a_categoriser))    
                     val_set["model_class"] = classifications_validation
                     classifications_validation = []
-                    print(val_set["model_class"])
                     metric = Metrics(val_set, root, algo_var.get())
                     cross_val_scores.append(metric.get_accuracy())
 
@@ -458,7 +458,7 @@ def main():
                 ## cross validation
                 cross_val_scores = []
                 user_selection_model_parameter("knn")
-                folds = get_k_folds(df_train, k=10)
+                folds = get_k_folds(df_train, k=1)
                 for i, (train_set, val_set) in enumerate(folds):
                     knn_model = KNN(df_train ,number_of_k_value.get(), distance_value.get(), vote_value.get())
                     for tweet_token in val_set["Tweet_Tokenized"]:
