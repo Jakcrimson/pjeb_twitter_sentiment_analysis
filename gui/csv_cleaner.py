@@ -26,7 +26,7 @@ class Csv_Cleaner():
         if is_single_input == True:
             self.data = single_input
         else:
-            self.data = pd.read_csv(pathfile, header=0)
+            self.data = pd.read_csv(pathfile, on_bad_lines="skip", sep=";")
             self.data.columns = ["target", "ids", "date", "flag", "user", "text"]
             print("csv cleaner init pass")
 

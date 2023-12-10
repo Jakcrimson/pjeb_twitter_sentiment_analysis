@@ -44,13 +44,13 @@ classes_labels = {
 """
 Initializes the splash window to display the XSA logo
 """
-splash_root = tk.Tk()
+splash_root     = tk.Tk()
 splash_root.title('XSA - GUI')
 splash_root.geometry("500x500")
-path = Path(__file__).parent / "."
-logo_path = (path / "./assets/black_logo.png").resolve()
-photo = tk.PhotoImage(file=logo_path)
-image_label = ttk.Label(
+path            = Path(__file__).parent / "."
+logo_path       = (path / "./assets/black_logo.png").resolve()
+photo           = tk.PhotoImage(file=logo_path)
+image_label     = ttk.Label(
     splash_root,
     image=photo,
     text='XSA',
@@ -62,12 +62,12 @@ image_label.pack()
 # GLOBAL VARIABLES #
 ####################
 single_input_classification = None
-number_of_k_value = None
-distance_value = None
-active_dataset = None
-variante1 = None
-variante2 = None
-variante3 = None
+number_of_k_value           = None
+distance_value              = None
+active_dataset              = None
+variante1                   = None
+variante2                   = None
+variante3                   = None
 
 def main(): 
     """
@@ -131,11 +131,11 @@ def main():
         """
         clean_data = ask("Would you like to clean your data ?")
         file_name = ""
-        df = pd.read_csv(file_path)
+        df = pd.read_csv(file_path, on_bad_lines='skip')
         set_active_dataset(df)
 
         if clean_data:
-                df = pd.read_csv(file_path)
+                df = pd.read_csv(file_path, on_bad_lines='skip', header=None)
                 cleaner = Csv_Cleaner(file_path)
                 df = cleaner.clean()
 
@@ -368,40 +368,20 @@ def main():
             print(classification)
             messagebox.showinfo(title="Info", message=f"Your input '{tweet_a_categoriser}' has been classsified as : {classes_labels[int(classification)]}")
 
-    def get_k_folds(data, k=5, random_seed=None):
-
-        if random_seed is not None:
-            random.seed(random_seed)
-
-        # Randomly shuffle the indices of the DataFrame
-        indices = np.random.permutation(data.index)
-
-        # Calculate the size of each fold
-        fold_size = len(indices) // k
-        remainder = len(indices) % k  # Number of remaining samples
-
+    def kfold_indices(data, k=5):
+        data = data.sample(frac=1)
+        fold_size = len(data) // k
+        indices = np.arange(len(data))
         folds = []
-
-        start_idx = 0
-
+        
         for i in range(k):
-            # Calculate the end index for the current fold
-            end_idx = start_idx + fold_size + (1 if i < remainder else 0)
-
-            # Split the indices into training and validation sets
-            validation_indices = indices[start_idx:end_idx]
-            training_indices = np.concatenate([indices[:start_idx], indices[end_idx:]])
-
-            # Extract the corresponding rows from the DataFrame
-            validation_set = data.loc[validation_indices].reset_index(drop=True)
-            training_set = data.loc[training_indices].reset_index(drop=True)
-
+            test_indices = indices[i * fold_size: (i + 1) * fold_size]
+            train_indices = np.concatenate([indices[:i * fold_size], indices[(i + 1) * fold_size:]])
+            validation_set = data.loc[test_indices].reset_index(drop=True)
+            training_set = data.loc[train_indices].reset_index(drop=True)
             folds.append((training_set, validation_set))
-
-            # Update the start index for the next fold
-            start_idx = end_idx
-
         return folds
+
 
     def train_test_split(data, test_size=0.2, random_seed=None):
 
@@ -431,22 +411,32 @@ def main():
                 df_train = copy.deepcopy(active_dataset)
 
                 ## selection du modele
-                user_selection_model_parameter(algo_var.get())
+                #user_selection_model_parameter(algo_var.get())
                 ## cross validation
-                cross_val_scores = []
-                folds = get_k_folds(df_train, k=5)
-                for i, (train_set, val_set) in enumerate(folds):
-                    print("WOOOO",type(variante1.get()))
-                    nb_model = NaiveBayes(train_set, variante1.get(), variante2.get(), variante3.get()) # model fitted on the training set
-                    for tweet_token in val_set["Tweet_Tokenized"]:
-                        tweet_a_categoriser = " ".join(literal_eval(tweet_token)) # model evaluated on the validation set
-                        classifications_validation.append(nb_model.classification(tweet_a_categoriser))    
-                    val_set["model_class"] = classifications_validation
-                    classifications_validation = []
-                    metric = Metrics(val_set, root, algo_var.get())
-                    cross_val_scores.append(metric.get_accuracy())
+                fold_indices = kfold_indices(df_train, 3)
+                variante1 = ["présence", "fréquence"]
+                variante2 = ["avec", "sans"]
+                variante3 = ["uni-gramme", "bi-gramme", "both"]
+                cross_val_scores = {}
+                for j in range(len(variante1)):
+                    for k in range(len(variante2)):
+                        for l in range(len(variante3)):
+                            for i, (train_set, val_set) in enumerate(fold_indices):
+                                score_folds = []
+                                classifications_validation = []
+                                nb_model = NaiveBayes(train_set, variante1[j], variante2[k], variante3[l]) # model fitted on the training set
+                                for tweet_token in val_set["Tweet_Tokenized"]:
+                                    tweet_a_categoriser = " ".join(literal_eval(tweet_token)) # model evaluated on the validation set
+                                    classifications_validation.append(nb_model.classification(tweet_a_categoriser))
+                                val_set["model_class"] = classifications_validation
+                                metric = Metrics(val_set, root, algo_var.get())
+                                score_folds.append(metric.get_accuracy())
+                            cross_val_scores[f"[{variante1[j]}, {variante2[k]}, {variante3[l]}]"]=(np.mean(score_folds))
+                print(cross_val_scores)
+                max_key = max(cross_val_scores, key=cross_val_scores.get)
+                max_value = cross_val_scores[max_key]
 
-                metric.display(np.mean(cross_val_scores))                
+                metric.display(f"Model : {max_key} -> {max_value}")          
 
         elif selection == 'knn':
             if isinstance(get_active_dataset(), type(None)):
@@ -456,20 +446,30 @@ def main():
                 df_train = copy.deepcopy(active_dataset)
 
                 ## cross validation
-                cross_val_scores = []
-                user_selection_model_parameter("knn")
-                folds = get_k_folds(df_train, k=1)
-                for i, (train_set, val_set) in enumerate(folds):
-                    knn_model = KNN(df_train ,number_of_k_value.get(), distance_value.get(), vote_value.get())
-                    for tweet_token in val_set["Tweet_Tokenized"]:
-                        tweet_a_categoriser = " ".join(literal_eval(tweet_token)) # model evaluated on the validation set
-                        classifications_validation.append(knn_model.classification(tweet_a_categoriser))    
-                    val_set["model_class"] = classifications_validation
-                    classifications_validation = []
-                    metric = Metrics(val_set, root, algo_var.get())
-                    cross_val_scores.append(metric.get_accuracy())
-
-                metric.display(np.mean(cross_val_scores)) 
+                cross_val_scores = {}
+                fold_indices = kfold_indices(df_train, k=2)
+                variante1 = [1,2,3]
+                variante2 = ["jaro"]#, "lcs", "damerau_levenshtein", "jaro", "cosine", "jaccard", "sorensen_dice", "qgram_dice"]
+                variante3 = ["pondéré", "majoritaire"]
+                cross_val_scores = {}
+                for j in range(len(variante1)):
+                    for k in range(len(variante2)):
+                        for l in range(len(variante3)):
+                            for i, (train_set, val_set) in enumerate(fold_indices):
+                                score_folds = []
+                                classifications_validation = []
+                                knn = KNN(train_set, variante1[j], variante2[k], variante3[l]) # model fitted on the training set
+                                for tweet_token in val_set["Tweet_Tokenized"]:
+                                    tweet_a_categoriser = " ".join(literal_eval(tweet_token)) # model evaluated on the validation set
+                                    classifications_validation.append(knn.classification(tweet_a_categoriser))
+                                val_set["model_class"] = classifications_validation
+                                metric = Metrics(val_set, root, algo_var.get())
+                                score_folds.append(metric.get_accuracy())
+                            cross_val_scores[f"[{variante1[j]}, {variante2[k]}, {variante3[l]}]"]=(np.mean(score_folds))
+                print(cross_val_scores)
+                max_key = max(cross_val_scores, key=cross_val_scores.get)
+                max_value = cross_val_scores[max_key]
+                metric.display(f"Model : {max_key} -> {max_value}")    
             
 
         elif selection == 'naive_classification':
@@ -503,7 +503,7 @@ def main():
     # ENTRY POINT OF THE GUI IMPLEMENTATION
     splash_root.destroy()
     root = ctk.CTk()
-    root.geometry("1000x600")
+    root.geometry("1000x900")
     root.title("X(Twitter) Sentiment Analysis - GUI")
 
     paned_window = tk.PanedWindow(root, orient="vertical", borderwidth=0)
@@ -511,7 +511,6 @@ def main():
 
     upper_frame = ctk.CTkFrame(paned_window, width=600, height=600,  border_width=0)
     middle_frame = ctk.CTkFrame(paned_window, width=600, height=600,  border_width=0)
-
 
     ###########
     # STYLES #
@@ -542,7 +541,7 @@ def main():
     #middle frame
     csv_editor = Application(middle_frame)
     csv_editor.pack()
-    open_button = ctk.CTkButton(middle_frame, text="Open CSV file",command=csv_editor.loadCells)
+    open_button = ctk.CTkButton(middle_frame, text="Edit CSV file",command=csv_editor.loadCells)
     open_button.pack(padx=50, pady=10)
 
     menubar = Menu(root, background='#1E1B24', fg='white')
@@ -570,7 +569,7 @@ def main():
 
     algoFrame = ctk.CTkFrame(paned_window, width=600, height=600,  border_width=0)
     algoFrame.grid(column=0, row=0, padx=20, pady=20)
-    
+
     # create a radio button
     naive_classif = ctk.CTkRadioButton(algoFrame, text='Dictionnary', value='naive_classification', variable=algo_var)
     naive_classif.grid(column=0, row=0, ipadx=10, ipady=10)
@@ -593,6 +592,10 @@ def main():
     stats = ctk.CTkButton(buttonFrame, text="Stats", command=show_model_stats)
     stats.grid(column=3, row=0, ipadx=10, ipady=10)
 
+    paned_window.paneconfig(middle_frame, width=1000, height=450)
+    paned_window.paneconfig(upper_frame, width=1000, height=400)
+    paned_window.paneconfig(algoFrame, width=1000, height=50)
+    paned_window.paneconfig(buttonFrame, width=1000, height=50)
 
     paned_window.add(middle_frame)
     paned_window.add(upper_frame)
