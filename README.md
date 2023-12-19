@@ -50,7 +50,7 @@ Before diving into the project, make sure you have the necessary prerequisites i
 1. Clone the repository to your local machine:
 
    ```bash
-   git clone https://github.com/yourusername/twitter-sentiment-analysis.git
+   git clone https://github.com/Jakcrimson/twitter-sentiment-analysis.git
    cd twitter-sentiment-analysis
    ```
 
